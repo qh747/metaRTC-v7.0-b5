@@ -3,6 +3,9 @@ project(libmetartc7)
 
 add_definitions(-D__STDC_FORMAT_MACROS)
 
+# 设置编译器
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -std=gnu11 ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=gnu++11 ")
 set(HOME_BASE_REL "../")

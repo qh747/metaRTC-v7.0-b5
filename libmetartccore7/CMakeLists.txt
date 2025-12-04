@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 project(libmetartccore7)
 add_definitions(-D__STDC_FORMAT_MACROS)
 
+# 设置编译器
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_BUILD_TYPE "RELEASE")
 
