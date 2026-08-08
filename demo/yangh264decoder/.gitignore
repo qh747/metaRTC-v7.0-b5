@@ -30,10 +30,3 @@
 *.exe
 *.out
 *.app
-
-# IDE
-.cache/
-.vscode/
-.qtcreator/
-build/
-bin/
