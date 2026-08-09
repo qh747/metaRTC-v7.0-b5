@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(metapushstream7 VERSION 1.0 LANGUAGES C CXX)
 
+# 设置编译器
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(HOME_BASE_REL "../../")
 get_filename_component(HOME_BASE ${HOME_BASE_REL} REALPATH)
@@ -126,20 +128,20 @@ if(UNIX AND NOT MACOS)
     )
 
     target_link_libraries(metapushstream7 PRIVATE
-        asound
-        crypto
-        dl
         metartc7
+        yangwhip7
         metartccore7
+        asound
+        dl
         openh264
         opus
         pthread
         speexdsp
         srtp2
-        ssl
         usrsctp
-        yangwhip7
         yuv
+        crypto
+        ssl
     )
 endif()
 
