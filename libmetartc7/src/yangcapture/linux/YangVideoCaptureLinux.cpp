@@ -261,11 +261,13 @@ int32_t YangVideoCaptureLinux::init() {
 	}
 
 	struct v4l2_format v4_format;
+	memset(&v4_format, 0, sizeof(v4_format));
+	
 	v4_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	v4_format.fmt.pix.width = m_width;
 	v4_format.fmt.pix.height = m_height;
 	v4_format.fmt.pix.pixelformat = format;	//V4L2_PIX_FMT_YUYV; //V4L2_PIX_FMT_YUYV;
-	v4_format.fmt.pix.field = V4L2_FIELD_INTERLACED;
+	v4_format.fmt.pix.field = V4L2_FIELD_NONE;
 
 	if ((ioctl(m_vd_id, VIDIOC_S_FMT, &v4_format)) != 0) {
 		yang_error("\n set fmt error!");

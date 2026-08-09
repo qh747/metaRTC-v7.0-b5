@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include <yangutil/yangtype.h>
 
@@ -34,29 +35,29 @@ void yang_setCLogLevel(int32_t plevel);
 
 #if Yang_OS_ANDROID
 #include <android/log.h>
-#define yang_fatal( fmt, ...) __android_log_print(ANDROID_LOG_FATAL,fmt, ##__VA_ARGS__)
+#define yang_fatal( fmt, ...) __android_log_print(ANDROID_LOG_FATAL,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
 
-#define yang_warn( fmt, ...) __android_log_print(ANDROID_LOG_WARN,"metaRTC",fmt, ##__VA_ARGS__)
-#define yang_info( fmt, ...) __android_log_print(ANDROID_LOG_INFO,"metaRTC",fmt, ##__VA_ARGS__)
-#define yang_debug( fmt, ...) __android_log_print(ANDROID_LOG_DEBUG,"metaRTC",fmt, ##__VA_ARGS__)
+#define yang_warn( fmt, ...) __android_log_print(ANDROID_LOG_WARN,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_info( fmt, ...) __android_log_print(ANDROID_LOG_INFO,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_debug( fmt, ...) __android_log_print(ANDROID_LOG_DEBUG,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
 
 
-#define yang_debug2( fmt, ...) __android_log_print(ANDROID_LOG_DEBUG,fmt, ##__VA_ARGS__)
-#define yang_info2( fmt, ...) __android_log_print(ANDROID_LOG_INFO,fmt, ##__VA_ARGS__)
-#define yang_trace( fmt, ...) __android_log_print(ANDROID_LOG_VERBOSE,"metaRTC",fmt, ##__VA_ARGS__)
-#define yang_error( fmt, ...) __android_log_print(ANDROID_LOG_ERROR,"metaRTC",fmt, ##__VA_ARGS__)
+#define yang_debug2( fmt, ...) __android_log_print(ANDROID_LOG_DEBUG,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_info2( fmt, ...) __android_log_print(ANDROID_LOG_INFO,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_trace( fmt, ...) __android_log_print(ANDROID_LOG_VERBOSE,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_error( fmt, ...) __android_log_print(ANDROID_LOG_ERROR,"metaRTC","[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
 #else
-#define yang_fatal( fmt, ...) yang_clog(0,fmt, ##__VA_ARGS__)
-#define yang_error( fmt, ...) yang_clog(1,fmt, ##__VA_ARGS__)
-#define yang_warn( fmt, ...) yang_clog(2,fmt, ##__VA_ARGS__)
-#define yang_info( fmt, ...) yang_clog(3,fmt, ##__VA_ARGS__)
-#define yang_debug( fmt, ...) yang_clog(4,fmt, ##__VA_ARGS__)
+#define yang_fatal( fmt, ...) yang_clog(0,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_error( fmt, ...) yang_clog(1,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_warn( fmt, ...) yang_clog(2,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_info( fmt, ...) yang_clog(3,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_debug( fmt, ...) yang_clog(4,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
 
 
-#define yang_debug2( fmt, ...) yang_clogf(4,fmt, ##__VA_ARGS__)
-#define yang_info2( fmt, ...) yang_clogf(3,fmt, ##__VA_ARGS__)
-#define yang_trace( fmt, ...) yang_clogf(5,fmt, ##__VA_ARGS__)
-#define yang_trace2( fmt, ...) yang_clogf2(5,fmt, ##__VA_ARGS__)
+#define yang_debug2( fmt, ...) yang_clogf(4,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_info2( fmt, ...) yang_clogf(3,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_trace( fmt, ...) yang_clogf(5,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
+#define yang_trace2( fmt, ...) yang_clogf2(5,"[%s:%d %s] " fmt, strrchr("/" __FILE__,'/')+1, __LINE__, __func__, ##__VA_ARGS__)
 #endif
 
 #define yang_setLogLevel(x) yang_setCLogLevel(x)

@@ -409,12 +409,12 @@ typedef struct YangAudioInfo {
 }YangAudioInfo;
 
 typedef struct YangVideoInfo {
-	int32_t width; //= 800
-	int32_t height; //= 600
+	int32_t width; // 800
+	int32_t height; // 600
 	int32_t outWidth;
 	int32_t outHeight;
 	int32_t rate; // 512
-	int32_t frame; //25
+	int32_t frame; // 25
 	int32_t rotate; // 16
 	int32_t bitDepth;
 

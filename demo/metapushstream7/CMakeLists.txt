@@ -4,6 +4,9 @@ project(metapushstream7 VERSION 1.0 LANGUAGES C CXX)
 # 设置编译器
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# 设置Debug
+set(CMAKE_BUILD_TYPE Debug)
+
 set(HOME_BASE_REL "../../")
 get_filename_component(HOME_BASE ${HOME_BASE_REL} REALPATH)
 
