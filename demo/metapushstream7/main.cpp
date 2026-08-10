@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     RecordMainWindow win;
-    YangSysMessageHandle* sysmessage = YangPushFactory::CreatePushMessageHandle(
+    YangSysMessageHandle* sys = YangPushFactory::CreatePushMessageHandle(
         win.m_hasAudio,
         win.m_videoType,
         &win.m_screenInfo,
@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
         &win,
         &win);
 
-    win.m_message = sysmessage;
-    sysmessage->start();
+    win.m_message = sys;
+    sys->start();
 
     YangRecordThread videoThread;
     win.initVideoThread(&videoThread);

@@ -7,28 +7,55 @@
 #include <yangutil/sys/YangThread.h>
 #include <yangutil/yangtype.h>
 
-#define yang_stop_thread(x) if(x){while(x->m_isStart) yang_usleep(1000);}
-#define yang_stop(x) if(x&&x->m_isStart){x->stop();}
+#define yang_stop_thread(x) if (x) { while(x->m_isStart) yang_usleep(1000); }
+#define yang_stop(x) if (x && x->m_isStart) { x->stop(); }
 class YangThread {
 public:
-	YangThread();
-	virtual ~YangThread();
+	YangThread() { m_thread = 0; }
+	virtual ~YangThread() { m_thread = 0; };
 
-	int32_t start();
-	void* join();
-	int32_t detach();
-	int32_t equals(YangThread *t);
-	void exitThread(void *value_ptr);
-	//int32_t cancel();
-	yang_thread_t getThread();
-	virtual void stop()=0;
+public:
+    /**
+     * 执行线程任务
+     * @param obj 线程对象
+     * @return 线程返回值
+     */
+    static void* RunTask(void* obj);
+
+public:
+    /**
+	 * 停止线程
+	 */
+	virtual void stop() = 0;
+
 protected:
+    /**
+	 * 运行线程任务
+	 */
 	virtual void run() = 0;
 
-private:
-	static void* go(void *obj);
-	yang_thread_t m_thread;
+public:
+    /**
+	 * 启动线程
+	 * @return 0 成功 -1 失败
+	 */
+	int32_t start();
 
+	/**
+	 * 等待线程结束
+	 * @return 线程返回值
+	 */
+	void* join();
+
+public:
+	/**
+	 * 获取线程
+	 * @return 线程
+	 */
+	inline yang_thread_t getThread() { return m_thread; }
+
+private:
+	yang_thread_t m_thread;
 };
 
-#endif
+#endif // YangThread2_H__

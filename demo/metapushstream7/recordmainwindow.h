@@ -79,7 +79,7 @@ private:
     int32_t m_isVr;
     bool m_isDrawmouse;
 
-    string m_url;
+    std::string m_url;
 
     int32_t m_screenInternal;
     YangJanus m_janus;
