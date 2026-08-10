@@ -14,12 +14,10 @@
 
 #define Yang_MJPEG_Header 0x37
 
-    // 8 = audio
-#define    YangFrameTypeAudio 8
-    // 9 = video
+#define YangFrameTypeAudio 8
 #define YangFrameTypeVideo  9
-    // 18 = script data
-#define kNalTypeMask       0x1F
+
+#define kNalTypeMask 0x1F
 
 #define YangAudioPayloadType 111
 #define YangAV1PayloadType 123
@@ -27,46 +25,43 @@
 #define YangH265PayloadType 126
 #define YangMjpegPayloadType 26
 
-
 #define Yang_TWCC_ID 3
 
 #define kDefaultLowLossThreshold 0.02f
 #define kDefaultHighLossThreshold 0.1f
 
-
-typedef enum YangHevcNaluType
-{
+typedef enum YangHevcNaluType {
 	YANG_NAL_UNIT_CODED_SLICE_TRAIL_N = 0,
-	YANG_NAL_UNIT_CODED_SLICE_TRAIL_R, //1
-	YANG_NAL_UNIT_CODED_SLICE_TSA_N,   //2
-	YANG_NAL_UNIT_CODED_SLICE_TLA,     //3
-	YANG_NAL_UNIT_CODED_SLICE_STSA_N,  //4
-	YANG_NAL_UNIT_CODED_SLICE_STSA_R,  //5
-	YANG_NAL_UNIT_CODED_SLICE_RADL_N,  //6
-	YANG_NAL_UNIT_CODED_SLICE_DLP,     //7
-	YANG_NAL_UNIT_CODED_SLICE_RASL_N,  //8
-	YANG_NAL_UNIT_CODED_SLICE_TFD,     //9
+	YANG_NAL_UNIT_CODED_SLICE_TRAIL_R, 
+	YANG_NAL_UNIT_CODED_SLICE_TSA_N,   
+	YANG_NAL_UNIT_CODED_SLICE_TLA,     
+	YANG_NAL_UNIT_CODED_SLICE_STSA_N,  
+	YANG_NAL_UNIT_CODED_SLICE_STSA_R,  
+	YANG_NAL_UNIT_CODED_SLICE_RADL_N,  
+	YANG_NAL_UNIT_CODED_SLICE_DLP,     
+	YANG_NAL_UNIT_CODED_SLICE_RASL_N,  
+	YANG_NAL_UNIT_CODED_SLICE_TFD,     
 	YANG_NAL_UNIT_RESERVED_10,
 	YANG_NAL_UNIT_RESERVED_11,
 	YANG_NAL_UNIT_RESERVED_12,
 	YANG_NAL_UNIT_RESERVED_13,
 	YANG_NAL_UNIT_RESERVED_14,
 	YANG_NAL_UNIT_RESERVED_15,
-	YANG_NAL_UNIT_CODED_SLICE_BLA,      //16
-	YANG_NAL_UNIT_CODED_SLICE_BLANT,    //17
-	YANG_NAL_UNIT_CODED_SLICE_BLA_N_LP, //18
-	YANG_NAL_UNIT_CODED_SLICE_IDR,      //19
-	YANG_NAL_UNIT_CODED_SLICE_IDR_N_LP, //20
-	YANG_NAL_UNIT_CODED_SLICE_CRA,      //21
-	YANG_NAL_UNIT_VPS=32,                   //32
-	YANG_NAL_UNIT_SPS,                   // 33
-	YANG_NAL_UNIT_PPS,                   //34
-	YANG_NAL_UNIT_ACCESS_UNIT_DELIMITER, //35
-	YANG_NAL_UNIT_EOS,                   //36
-	YANG_NAL_UNIT_EOB,                   //37
-	YANG_NAL_UNIT_FILLER_DATA,           //38
-	YANG_NAL_UNIT_SEI ,                  //39Prefix SEI
-	YANG_NAL_UNIT_SEI_SUFFIX,            //40Suffix SEI
+	YANG_NAL_UNIT_CODED_SLICE_BLA,     
+	YANG_NAL_UNIT_CODED_SLICE_BLANT,   
+	YANG_NAL_UNIT_CODED_SLICE_BLA_N_LP,  
+	YANG_NAL_UNIT_CODED_SLICE_IDR,     
+	YANG_NAL_UNIT_CODED_SLICE_IDR_N_LP,  
+	YANG_NAL_UNIT_CODED_SLICE_CRA,     
+	YANG_NAL_UNIT_VPS = 32,                
+	YANG_NAL_UNIT_SPS,                   
+	YANG_NAL_UNIT_PPS,                   
+	YANG_NAL_UNIT_ACCESS_UNIT_DELIMITER, 
+	YANG_NAL_UNIT_EOS,                   
+	YANG_NAL_UNIT_EOB,                   
+	YANG_NAL_UNIT_FILLER_DATA,           
+	YANG_NAL_UNIT_SEI ,                  
+	YANG_NAL_UNIT_SEI_SUFFIX,            
 	YANG_NAL_UNIT_RESERVED_41,
 	YANG_NAL_UNIT_RESERVED_42,
 	YANG_NAL_UNIT_RESERVED_43,
@@ -91,15 +86,14 @@ typedef enum YangHevcNaluType
 	YANG_NAL_UNIT_UNSPECIFIED_62,
 	YANG_NAL_UNIT_UNSPECIFIED_63,
 	YANG_NAL_UNIT_INVALID,
-}YangHevcNaluType;
+} YangHevcNaluType;
 
 //for nalu data first byte
-//#define YANG_HEVC_NALU_TYPE(code) (YangHevcNaluType)((code & 0x7E)>>1)
 #define YANG_HEVC_NALU_TYPE(code) (YangHevcNaluType)((code >> 1) & 0x3F)
 #define H265_kFuA 49
 #define H265_kStapA 48
 
-enum{
+enum {
 	YANG_DATA_CHANNEL_DCEP = 50,
 	YANG_DATA_CHANNEL_STRING = 51,
 	YANG_DATA_CHANNEL_BINARY = 53,
@@ -107,7 +101,7 @@ enum{
 	YANG_DATA_CHANNEL_BINARY_EMPTY = 57
 };
 
-typedef enum YangYuvType{
+typedef enum YangYuvType {
     YangYuy2,
 	YangI420,
 	YangYv12,
@@ -118,22 +112,20 @@ typedef enum YangYuvType{
     YangBgra,
 	YangP010,
     YangP016
-}YangColorSpace;
+} YangColorSpace;
 
-typedef enum YangRatate{
-	Yang_Rotate0 = 0,      // No rotation.
-	Yang_Rotate90 = 90,    // Rotate 90 degrees clockwise.
-	Yang_Rotate180 = 180,  // Rotate 180 degrees.
+typedef enum YangRatate {
+	Yang_Rotate0 = 0,      
+	Yang_Rotate90 = 90,    
+	Yang_Rotate180 = 180,  
 	Yang_Rotate270 = 270,
-}YangRatate;
+} YangRatate;
 /**
  * the level for avc/h.264.
  * @see Annex A Profiles and levels, ISO_IEC_14496-10-AVC-2003.pdf, page 207.
  */
-enum YangAvcLevel
-{
+enum YangAvcLevel {
     YangAvcLevelReserved = 0,
-
     YangAvcLevel_1 = 10,
     YangAvcLevel_11 = 11,
     YangAvcLevel_12 = 12,
@@ -154,23 +146,20 @@ enum YangAvcLevel
  * Table 7-6 – Name association to slice_type
  * ISO_IEC_14496-10-AVC-2012.pdf, page 105.
  */
-enum YangAvcSliceType
-{
-    YangAvcSliceTypeP   = 0,
-    YangAvcSliceTypeB   = 1,
-    YangAvcSliceTypeI   = 2,
-    YangAvcSliceTypeSP  = 3,
-    YangAvcSliceTypeSI  = 4,
-    YangAvcSliceTypeP1  = 5,
-    YangAvcSliceTypeB1  = 6,
-    YangAvcSliceTypeI1  = 7,
+enum YangAvcSliceType {
+    YangAvcSliceTypeP = 0,
+    YangAvcSliceTypeB = 1,
+    YangAvcSliceTypeI = 2,
+    YangAvcSliceTypeSP = 3,
+    YangAvcSliceTypeSI = 4,
+    YangAvcSliceTypeP1 = 5,
+    YangAvcSliceTypeB1 = 6,
+    YangAvcSliceTypeI1 = 7,
     YangAvcSliceTypeSP1 = 8,
     YangAvcSliceTypeSI1 = 9,
 };
 
-
-typedef enum
-{
+typedef enum {
     // Unspecified
     YangAvcNaluTypeReserved = 0,
     YangAvcNaluTypeForbidden = 0,
@@ -211,8 +200,7 @@ typedef enum
     YangAvcNaluTypeCodedSliceExt = 20,
 }YangAvcNaluType;
 
-enum YangAvcProfile
-{
+enum YangAvcProfile {
     YangAvcProfileReserved = 0,
 
     // @see ffmpeg, libavcodec/avcodec.h:2713
@@ -232,16 +220,16 @@ enum YangAvcProfile
     YangAvcProfileHigh444Intra = 2192,
 };
 
-typedef enum YangAudioCodec{
+typedef enum YangAudioCodec {
 	Yang_AED_AAC,
 	Yang_AED_MP3,
 	Yang_AED_SPEEX,
 	Yang_AED_OPUS,
 	Yang_AED_PCMA,
 	Yang_AED_PCMU
-}YangAudioCodec;
+} YangAudioCodec;
 
-typedef enum YangVideoCodec{
+typedef enum YangVideoCodec {
 	Yang_VED_H264,
 	Yang_VED_H265,
 	Yang_VED_AV1,
@@ -261,20 +249,19 @@ typedef enum {
     Yang_Conn_State_Disconnected,
     Yang_Conn_State_Failed,
     Yang_Conn_State_Closed
-}YangRtcConnectionState;
+} YangRtcConnectionState;
 
-typedef enum{
+typedef enum YangMediaTrack {
 	YangMediaAudio,
 	YangMediaVideo
-}YangMediaTrack;
+} YangMediaTrack;
 
-typedef enum{
+typedef enum {
 	YangSendrecv,
 	YangSendonly,
 	YangRecvonly,
 	YangInactive
-}YangRtcDirection;
-
+} YangRtcDirection;
 
 typedef enum YangRequestType {
 	Yang_Req_Sendkeyframe,
@@ -282,34 +269,34 @@ typedef enum YangRequestType {
 	Yang_Req_LowLostPacketRate,
 	Yang_Req_Connected,
 	Yang_Req_Disconnected
-}YangRequestType;
+} YangRequestType;
 
-typedef enum YangRtcMessageType{
+typedef enum YangRtcMessageType {
 	YangRTC_Decoder_Error
-}YangRtcMessageType;
+} YangRtcMessageType;
 
 
-typedef enum{
+typedef enum {
 	YangIceModeFull,
 	YangIceModeLite
-}YangIceMode;
+} YangIceMode;
 
-typedef enum{
+typedef enum {
 	YangTransportAll,
 	YangTransportRelay
-}YangIceTransportPolicy;
+} YangIceTransportPolicy;
 
-typedef enum{
+typedef enum {
 	YangIceHost,
 	YangIceStun,
 	YangIceTurn
-}YangIceCandidateType;
+} YangIceCandidateType;
 
 typedef enum {
 	YangIceNew,
     YangIceSuccess,
     YangIceFail
-}YangIceCandidateState;
+} YangIceCandidateState;
 
 typedef enum {
 	YangIceGatherNew,
@@ -317,7 +304,7 @@ typedef enum {
     YangIceGatherComplete
 } YangIceGatheringState;
 
-typedef struct{
+typedef struct {
 	int32_t uid;
 	int32_t mediaType;
 	int32_t frametype;
@@ -325,50 +312,47 @@ typedef struct{
 	int64_t pts;
 	int64_t dts;
 	uint8_t* payload;
-}YangFrame;
+} YangFrame;
 
-
-struct YangRect{
+struct YangRect {
     short x;
     short y;
     short w;
     short h;
 };
-struct YangColor{
+struct YangColor {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 };
-typedef struct  {
+typedef struct {
 	int32_t vpsLen;
 	int32_t spsLen;
 	int32_t ppsLen;
 	uint8_t vps[128];
 	uint8_t sps[128];
 	uint8_t pps[64];
-}YangH2645Conf;
+} YangH2645Conf;
 
-typedef struct  {
+typedef struct {
 	uint8_t buffer[128];
 	int32_t bufLen;
 }YangRtmpMeta;
 
-typedef struct  {
+typedef struct {
 	int32_t isInit;
 	 YangH2645Conf mp4Meta;
-	//YangRtmpMeta flvMeta;
 	 YangRtmpMeta livingMeta;
-}YangVideoMeta;
+} YangVideoMeta;
 
-
-enum YangVideoHwType{
+enum YangVideoHwType {
 	Yang_Hw_Soft,
 	YangV_Hw_Intel,
 	YangV_Hw_Nvdia,
 	YangV_Hw_Android
 };
 
-struct YangMessage{
+struct YangMessage {
 	int32_t mediaType;
 	int32_t nb;
 	int64_t timestamp;
@@ -378,12 +362,9 @@ struct YangMessage{
 typedef struct {
 	int32_t nb;
 	char* bytes;
-}YangSample;
-
-
+} YangSample;
 
 typedef struct YangAudioInfo {
-
 	yangbool enableMono;
 	yangbool enableAec;
 	yangbool enableAudioFec;
@@ -406,16 +387,16 @@ typedef struct YangAudioInfo {
 
 	int32_t aIndex;
 	int32_t aSubIndex;
-}YangAudioInfo;
+} YangAudioInfo;
 
 typedef struct YangVideoInfo {
-	int32_t width; // 800
-	int32_t height; // 600
+	int32_t width; 
+	int32_t height; 
 	int32_t outWidth;
 	int32_t outHeight;
-	int32_t rate; // 512
-	int32_t frame; // 25
-	int32_t rotate; // 16
+	int32_t rate; 
+	int32_t frame; 
+	int32_t rotate; 
 	int32_t bitDepth;
 
 	int32_t videoCacheNum;
@@ -431,7 +412,7 @@ typedef struct YangVideoInfo {
 	int32_t videoEncHwType;
 	int32_t videoDecHwType;
 	int32_t vIndex;
-}YangVideoInfo;
+} YangVideoInfo;
 
 typedef struct YangVideoEncInfo {
 	yangbool createMeta;
@@ -442,7 +423,7 @@ typedef struct YangVideoEncInfo {
 	int32_t enc_threads;
 	int32_t gop;
 
-}YangVideoEncInfo;
+} YangVideoEncInfo;
 
 typedef struct YangSysInfo {
 	yangbool enableLogFile;
@@ -454,51 +435,51 @@ typedef struct YangSysInfo {
 	int32_t logLevel;
 	char whipUrl[128];
 	char whepUrl[128];
-}YangSysInfo;
+} YangSysInfo;
 
 typedef struct YangRtcInfo {
-		yangbool isControlled;
-		yangbool enableSdpCandidate;
+	yangbool isControlled;
+	yangbool enableSdpCandidate;
 
-		int32_t  sessionTimeout;
-		int32_t  iceCandidateType;
+	int32_t sessionTimeout;
+	int32_t iceCandidateType;
 
-		YangIceTransportPolicy iceTransportPolicy;
+	YangIceTransportPolicy iceTransportPolicy;
 
-		int32_t  iceServerPort;
+	int32_t iceServerPort;
 
-		int32_t  rtcSocketProtocol;
-		int32_t  turnSocketProtocol;
+	int32_t rtcSocketProtocol;
+	int32_t turnSocketProtocol;
 
-		int32_t  rtcPort;
-		int32_t  rtcLocalPort;
+	int32_t rtcPort;
+	int32_t rtcLocalPort;
 
-		int32_t turnReqInterval;
-		int32_t maxTurnWaitTime;
+	int32_t turnReqInterval;
+	int32_t maxTurnWaitTime;
 
-		char iceServerIP[64];
-		char iceUserName[32];
-		char icePassword[64];
-}YangRtcInfo;
+	char iceServerIP[64];
+	char iceUserName[32];
+	char icePassword[64];
+} YangRtcInfo;
 
-typedef struct{
+typedef struct {
 	yangbool enableMqttTls;
-	int32_t  mqttPort;
-	int32_t  maxReconnectTimes;
-	int32_t  reconnectIntervalTime;
+	int32_t mqttPort;
+	int32_t maxReconnectTimes;
+	int32_t reconnectIntervalTime;
 	char mqttServerIP[32];
 	char mqttUserName[32];
 	char mqttPassword[64];
-}YangMqttInfo;
+} YangMqttInfo;
 
-typedef struct YangAVInfo{
+typedef struct YangAVInfo {
 	YangSysInfo sys;
 	YangAudioInfo audio;
 	YangVideoInfo video;
 	YangVideoEncInfo enc;
 	YangRtcInfo rtc;
 	YangMqttInfo* mqtt;
-}YangAVInfo;
+} YangAVInfo;
 
 typedef struct {
 	enum YangAudioCodec encode;
@@ -506,19 +487,19 @@ typedef struct {
 	int32_t channel;
     int32_t audioClock;
     int32_t fec;
-}YangAudioParam;
+} YangAudioParam;
 
-typedef struct  {
+typedef struct {
 	enum YangVideoCodec encode;
 	int32_t videoClock;
-}YangVideoParam;
+} YangVideoParam;
 
-typedef struct{
- void* context;
- int32_t (*sendRtcMessage)(void* context,int puid,YangRtcMessageType mess);
-}YangSendRtcMessage;
+typedef struct {
+    void* context;
+    int32_t (*sendRtcMessage)(void* context, int puid, YangRtcMessageType mess);
+} YangSendRtcMessage;
 
-typedef struct{
+typedef struct {
 	YangIpFamilyType familyType;
 	int32_t serverPort;
 	uint32_t stunIp;
@@ -528,58 +509,56 @@ typedef struct{
 	char username[64];
 	char password[64];
 	char serverIp[64];
-}YangIceServer;
-
-typedef struct{
-	void* context;
-	void (*sslAlert)(void* context,int32_t uid,char* type,char* desc);
-}YangSslCallback;
+} YangIceServer;
 
 typedef struct {
-	 void* context;
-	 void (*receiveAudio)(void* context,YangFrame *audioFrame);
-	 void (*receiveVideo)(void* context,YangFrame *videoFrame);
-	 void (*receiveMsg)(void* context,YangFrame *videoFrame);
-}YangReceiveCallback;
-
-typedef struct{
 	void* context;
-	void (*onIceStateChange)(void* context,int32_t uid,YangIceCandidateState iceState);
-	void (*onConnectionStateChange)(void* context, int32_t uid,YangRtcConnectionState connectionState);
-	void (*onIceCandidate)(void* context, int32_t uid,char* sdp);
-	void (*onIceGatheringState)(void* context, int32_t uid,YangIceGatheringState gatherState);
-}YangIceCallback;
+	void (*sslAlert)(void* context, int32_t uid, char* type, char* desc);
+} YangSslCallback;
 
-typedef struct{
+typedef struct {
 	void* context;
-	void (*setMediaConfig)(void* context,int32_t puid,YangAudioParam* audio,YangVideoParam* video);
-	void (*sendRequest)(void* context,int32_t puid,uint32_t ssrc,YangRequestType req);
-}YangRtcCallback;
+	void (*receiveAudio)(void* context, YangFrame *audioFrame);
+	void (*receiveVideo)(void* context, YangFrame *videoFrame);
+	void (*receiveMsg)(void* context, YangFrame *videoFrame);
+} YangReceiveCallback;
 
-typedef struct  {
+typedef struct {
+	void* context;
+	void (*onIceStateChange)(void* context, int32_t uid, YangIceCandidateState iceState);
+	void (*onConnectionStateChange)(void* context, int32_t uid, YangRtcConnectionState connectionState);
+	void (*onIceCandidate)(void* context, int32_t uid, char* sdp);
+	void (*onIceGatheringState)(void* context, int32_t uid, YangIceGatheringState gatherState);
+} YangIceCallback;
+
+typedef struct {
+	void* context;
+	void (*setMediaConfig)(void* context, int32_t puid,YangAudioParam* audio, YangVideoParam* video);
+	void (*sendRequest)(void* context, int32_t puid, uint32_t ssrc, YangRequestType req);
+} YangRtcCallback;
+
+typedef struct {
 	YangSslCallback sslCallback;
 	YangRtcCallback rtcCallback;
 	YangReceiveCallback recvCallback;
 	YangIceCallback iceCallback;
+} YangPeerCallback;
 
-}YangPeerCallback;
-
-typedef struct{
+typedef struct {
 	int32_t enableAudioFec;
 	int32_t sample;
 	int32_t channel;
+	YangAudioCodec audioEncoderType;
+} YangPushAudioInfo;
 
-	YangAudioCodec  audioEncoderType;
-}YangPushAudioInfo;
-
-typedef struct{
+typedef struct {
 	int32_t width;
 	int32_t height;
 	int32_t fps;
-	YangVideoCodec  videoEncoderType;
-}YangPushVideoInfo;
+	YangVideoCodec videoEncoderType;
+} YangPushVideoInfo;
 
-typedef struct{
+typedef struct {
 	int32_t uid;
 	int32_t userId;
 	int32_t remotePort;
@@ -591,16 +570,14 @@ typedef struct{
 	YangRtcInfo rtc;
 	YangPushAudioInfo pushAudio;
 	YangPushVideoInfo pushVideo;
-}YangPeerInfo;
+} YangPeerInfo;
 
-typedef struct{
+typedef struct {
 	void* conn;
 	YangPeerInfo peerInfo;
 	YangPeerCallback peerCallback;
-}YangPeer;
-
-
+} YangPeer;
 
 YangSample* yang_sample_copy(YangSample* src);
 
-#endif /* INCLUDE_YANGUTIL_YANGAVINFO_H_ */
+#endif // INCLUDE_YANGUTIL_YANGAVINFO_H_

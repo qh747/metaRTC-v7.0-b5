@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright (c) 2019-2025 yanggaofeng
 //
 
@@ -271,7 +271,7 @@ int32_t YangVideoCaptureLinux::init() {
 
 	if ((ioctl(m_vd_id, VIDIOC_S_FMT, &v4_format)) != 0) {
 		yang_error("\n set fmt error!");
-
+		return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	}
 	if(m_vhandle) m_vhandle->setCaptureFormat(m_para->videoCaptureFormat);
 
@@ -335,7 +335,6 @@ long YangVideoCaptureLinux::m_difftime(struct timeval *p_start,
 }
 
 int32_t YangVideoCaptureLinux::read_buffer() {
-
 	if (ioctl(m_vd_id, VIDIOC_DQBUF, &m_buf) != 0) {
 		yang_error("VIDIOC_DQBUF");
 		exit(1);
@@ -349,9 +348,10 @@ int32_t YangVideoCaptureLinux::read_buffer() {
 		m_timestatmp = 0;
 	}
 
-	if (m_vhandle)
+	if (m_vhandle) {
 		m_vhandle->putBuffer(m_timestatmp, m_user_buffer[m_buf.index].start,
 				m_user_buffer[m_buf.index].length);
+	}
 
 	if (ioctl(m_vd_id, VIDIOC_QBUF, &m_buf) != 0) {
 		yang_error("VIDIOC_QBUF");

@@ -147,7 +147,7 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
         case YangM_Push_StartScreenCapture: {
             m_rt->m_videoBuffer = (m_context->avinfo.video.videoEncoderFormat == YangArgb) ?
                 NULL : 
-                m_pushfactory.getPreVideoBuffer(m_message);
+                YangPushFactory::GetPreVideoBuffer(m_message);
             
             qDebug() << "message===" << m_message 
                      << "..prevideobuffer===" << m_rt->m_videoBuffer 
@@ -155,7 +155,7 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
             break;
         }
         case YangM_Push_StartVideoCapture: {
-            m_rt->m_videoBuffer = m_pushfactory.getPreVideoBuffer(m_message);
+            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
             
             qDebug() << "message===" << m_message 
                      << "..prevideobuffer===" << m_rt->m_videoBuffer 
@@ -163,7 +163,7 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
             break;
         }
         case YangM_Push_StartOutCapture: {
-            m_rt->m_videoBuffer = m_pushfactory.getPreVideoBuffer(m_message);
+            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
                 
             qDebug() << "message===" << m_message 
                      << "..prevideobuffer===" << m_rt->m_videoBuffer 
@@ -171,11 +171,11 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
             break;
         }
         case YangM_Push_SwitchToCamera: {
-            m_rt->m_videoBuffer = m_pushfactory.getPreVideoBuffer(m_message);
+            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
             break;
         }
         case YangM_Push_SwitchToScreen: {
-            m_rt->m_videoBuffer = m_pushfactory.getPreVideoBuffer(m_message);
+            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
             break;
         }
     }

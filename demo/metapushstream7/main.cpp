@@ -38,30 +38,27 @@ int main(int argc, char *argv[]) {
     QTextCodec::setCodecForLocale(codec);
 #endif
 
-    RecordMainWindow w;
-    YangPushFactory mf;
+    RecordMainWindow win;
+    YangSysMessageHandle* sysmessage = YangPushFactory::CreatePushMessageHandle(
+        win.m_hasAudio,
+        win.m_videoType,
+        &win.m_screenInfo,
+        &win.m_outInfo,
+        win.m_context,
+        &win,
+        &win);
 
-    YangSysMessageHandle* sysmessage = mf.createPushMessageHandle(
-        w.m_hasAudio,
-        false,
-        w.m_videoType,
-        &w.m_screenInfo,
-        &w.m_outInfo,
-        w.m_context,
-        &w,
-        &w);
-
-    w.m_message = sysmessage;
+    win.m_message = sysmessage;
     sysmessage->start();
 
     YangRecordThread videoThread;
-    w.initVideoThread(&videoThread);
+    win.initVideoThread(&videoThread);
 
     videoThread.start();
-    w.show();
+    win.show();
     
     QThread::msleep(200);
-    w.initPreview();
+    win.initPreview();
 
     return a.exec();
 }

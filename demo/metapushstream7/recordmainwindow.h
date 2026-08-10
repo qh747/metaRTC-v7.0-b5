@@ -82,7 +82,6 @@ private:
     string m_url;
 
     int32_t m_screenInternal;
-    YangPushFactory m_pushfactory;
     YangJanus m_janus;
     char m_localIp[64];
 };

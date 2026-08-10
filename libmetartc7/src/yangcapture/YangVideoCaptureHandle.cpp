@@ -47,7 +47,10 @@ YangVideoCaptureHandle::~YangVideoCaptureHandle(void) {
 
 }
 void YangVideoCaptureHandle::setCaptureFormat(int32_t pformat){
-    if((pformat==YangYuy2||pformat==YangNv12)&&!m_buf) m_buf=new uint8_t[m_bufLen];
+    m_captureVideoFormat = pformat;
+    if((pformat==YangYuy2||pformat==YangNv12)&&!m_buf) {
+        m_buf=new uint8_t[m_bufLen];
+    }
 }
 void  YangVideoCaptureHandle::setVideoBuffer(YangVideoBuffer *pbuf){
 	 m_out_videoBuffer=pbuf;
