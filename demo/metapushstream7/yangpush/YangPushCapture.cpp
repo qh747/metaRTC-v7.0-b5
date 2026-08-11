@@ -24,7 +24,7 @@ YangPushCapture::YangPushCapture(YangContext *pcontext) {
 	m_screen_out_videoBuffer=NULL;
 	m_pre_videoBuffer=new YangVideoBuffer(pcontext->avinfo.video.bitDepth==8?1:2);
 	m_pre_videoBuffer->isPreview=1;
-	m_pre_videoBuffer->m_frames=pcontext->avinfo.video.frame;
+
 	m_isConvert=0;
 	m_isStart=0;
 

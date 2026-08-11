@@ -72,7 +72,7 @@ void YangVideoDecoderHandle::addVideoStream(uint8_t *ps, int32_t puid,
 		if(m_out_videoBuffer){
 			m_out_videoBuffer->m_uid = puid;
 			m_out_videoBuffer->init(wid, hei, m_context->avinfo.video.videoDecoderFormat);
-			m_out_videoBuffer->m_frames = fps;
+
 			yang_trace("\ndecode:width==%d,height==%d,fps==%d\n",wid,hei,fps);
 			yang_trace("\nvideoBuffer:width==%d,height==%d,fps==%d\n",m_out_videoBuffer->m_width,m_out_videoBuffer->m_height,fps);
 		}
