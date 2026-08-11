@@ -1,51 +1,54 @@
 # Database Guidelines
 
-> Database patterns and conventions for this project.
+> Database and persistent storage conventions for metaRTC.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's database conventions here.
+metaRTC is a real-time streaming SDK and does **not** use a relational database or ORM. Persistence is limited to:
 
-Questions to answer:
-- What ORM/query library do you use?
-- How are migrations managed?
-- What are the naming conventions for tables/columns?
-- How do you handle transactions?
--->
+- Configuration files (`yang_config.ini`)
+- JSON-based signaling payloads
+- Optional log files (`yang_log.log`)
 
-(To be filled by the team)
+If you are adding a feature that requires structured persistence, prefer simple file-based configuration or JSON rather than introducing a database dependency.
 
 ---
 
-## Query Patterns
+## Configuration Files
 
-<!-- How should queries be written? Batch operations? -->
+Configuration is typically loaded from `.ini` files via `YangIni` utilities. Example:
 
-(To be filled by the team)
+- Path: `demo/metapushstream7/yang_config.ini`
+- Parser: `include/yangutil/sys/YangIni.h`
 
----
-
-## Migrations
-
-<!-- How to create and run migrations -->
-
-(To be filled by the team)
+Keep configuration keys consistent with existing naming patterns and document new keys in the relevant demo README.
 
 ---
 
-## Naming Conventions
+## JSON Payloads
 
-<!-- Table names, column names, index names -->
+Signaling and control messages use JSON. The project uses `jsoncpp` (headers under `thirdparty/include/json/`).
 
-(To be filled by the team)
+- Construct and parse JSON using `YangJson` abstraction where available.
+- Keep payload shapes stable across versions because they are exchanged with external servers (SRS, ZLM, Janus, etc.).
 
 ---
 
-## Common Mistakes
+## Log Files
 
-<!-- Database-related mistakes your team has made -->
+Runtime logs may be written to `yang_log.log` in the working directory. See [Logging Guidelines](./logging-guidelines.md) for levels and formatting.
 
-(To be filled by the team)
+---
+
+## When to Introduce a Database
+
+This codebase is not designed for database-backed operations. If you think you need one, discuss it first — the intended pattern is stateless streaming with in-memory buffers and optional INI/JSON configuration.
+
+---
+
+## Forbidden Patterns
+
+- Do not add SQLite, LevelDB, or other embedded database dependencies without explicit approval.
+- Do not store user credentials or stream keys in plain-text configuration files.

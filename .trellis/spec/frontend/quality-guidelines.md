@@ -1,51 +1,61 @@
 # Quality Guidelines
 
-> Code quality standards for frontend development.
+> Code quality standards for the metaRTC Qt frontend.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's quality standards here.
-
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
-
-(To be filled by the team)
+Qt demos should be simple coordinators between UI widgets and the backend SDK. Keep business logic in backend libraries; keep UI code focused on presentation and user interaction.
 
 ---
 
 ## Forbidden Patterns
 
-<!-- Patterns that should never be used and why -->
-
-(To be filled by the team)
+- **Business logic in UI files**: Do not implement encoding, networking, or protocol logic in `.cpp` files under `demo/`.
+- **Direct backend API calls from UI thread**: Long-running backend calls should be moved to worker threads.
+- **Blocking the main thread**: Avoid `QThread::sleep` or synchronous waits on the UI thread.
+- **Hard-coded platform paths**: Use `QStandardPaths` or configuration files instead.
 
 ---
 
 ## Required Patterns
 
-<!-- Patterns that must always be used -->
-
-(To be filled by the team)
+- **Worker threads for heavy work**: Capture, encode, and publish run on `YangRecordThread` or similar threads.
+- **Signal/slot for UI updates**: Update widgets from the main thread via signals.
+- **Resource cleanup in `closeEvent`**: Stop threads and release backend objects before the window closes.
+- **`.ui` files for layouts**: Use Qt Designer forms for static UI layouts.
 
 ---
 
-## Testing Requirements
+## Example: Main Window Cleanup
 
-<!-- What level of testing is expected -->
+```cpp
+void RecordMainWindow::closeEvent(QCloseEvent* event) {
+    closeAll();  // stop threads, release backend
+    event->accept();
+}
+```
 
-(To be filled by the team)
+---
+
+## Testing
+
+Frontend testing is primarily manual:
+
+1. Build the demo with CMake.
+2. Run it on the target platform.
+3. Verify video preview, start/stop streaming, and clean shutdown.
+
+There are no automated UI tests. Keep demos simple enough to verify by inspection.
 
 ---
 
 ## Code Review Checklist
 
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+- [ ] Does the demo build with Qt6?
+- [ ] Are backend operations running on worker threads?
+- [ ] Are UI updates performed on the main thread?
+- [ ] Is cleanup handled in `closeEvent` or destructor?
+- [ ] Are `.ui` files used for static layouts?
+- [ ] No backend protocol logic leaked into UI code?

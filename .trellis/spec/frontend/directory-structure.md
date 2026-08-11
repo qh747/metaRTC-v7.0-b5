@@ -1,54 +1,75 @@
 # Directory Structure
 
-> How frontend code is organized in this project.
+> How frontend/demo code is organized in metaRTC.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's frontend directory structure here.
-
-Questions to answer:
-- Where do components live?
-- How are features/modules organized?
-- Where are shared utilities?
-- How are assets organized?
--->
-
-(To be filled by the team)
+metaRTC is primarily an SDK, not a web application. The "frontend" layer consists of **Qt-based desktop demos** and platform-specific demo apps (Android, Flutter, LVGL). This document focuses on the Qt desktop demos, which are the canonical reference frontend.
 
 ---
 
-## Directory Layout
+## Demo Layout
 
 ```
-<!-- Replace with your actual structure -->
-src/
-├── ...
-└── ...
+demo/
+├── metapushstream7/          # Qt6 desktop push/stream demo
+├── metaplayer7/              # Qt6 desktop player demo
+├── metaplayer7_lvgl/         # LVGL embedded demo
+├── metaplayer7_flutter/      # Flutter cross-platform demo
+├── metapushstream7_android/  # Android native demo
+└── metaplayer7_android/      # Android native player demo
 ```
+
+Each demo is self-contained and links against `libmetartc7` / `libmetartccore7`.
 
 ---
 
-## Module Organization
+## Qt Demo Structure (`demo/metapushstream7/`)
 
-<!-- How should new features be organized? -->
-
-(To be filled by the team)
+```
+demo/metapushstream7/
+├── main.cpp                  # QApplication entry point
+├── recordmainwindow.h/.cpp   # Main QMainWindow
+├── recordmainwindow.ui       # Qt Designer form
+├── yangjanus.h/.cpp/.ui      # Janus-specific UI dialog
+├── video/                    # Video capture/render widgets
+│   ├── YangPlayWidget.h/.cpp
+│   ├── YangYuvPlayWidget.h/.cpp
+│   ├── yangrecordthread.h/.cpp
+│   └── yangvideotype.h
+└── yangpush/                 # Push stream integration
+    ├── YangPushFactory.cpp
+    ├── YangPushHandleImpl.h/.cpp
+    ├── YangPushMessageHandle.h/.cpp
+    └── ...
+```
 
 ---
 
 ## Naming Conventions
 
-<!-- File and folder naming rules -->
+- **Main window classes**: `<Feature>MainWindow` (e.g., `RecordMainWindow`).
+- **Widget classes**: `Yang<Feature>Widget` (e.g., `YangPlayWidget`).
+- **Thread classes**: `Yang<Feature>Thread` (e.g., `YangRecordThread`).
+- **UI files**: Lowercase matching the class name (`recordmainwindow.ui`).
+- **Member variables**: `m_<camelCase>` consistent with backend code.
 
-(To be filled by the team)
+---
+
+## Adding a New Demo
+
+1. Create a new directory under `demo/`.
+2. Add a `CMakeLists.txt` that links against Qt6 and the metaRTC libraries.
+3. Add `main.cpp` with `QApplication` setup.
+4. Implement a main window class and any custom widgets.
+5. Reuse existing `YangPlayWidget`, `YangRecordThread`, etc., where possible.
 
 ---
 
 ## Examples
 
-<!-- Link to well-organized modules as examples -->
-
-(To be filled by the team)
+- Typical Qt demo entry: `demo/metapushstream7/main.cpp`
+- Main window + UI form: `demo/metapushstream7/recordmainwindow.h`, `.cpp`, `.ui`
+- OpenGL video widget: `demo/metapushstream7/video/YangPlayWidget.h`

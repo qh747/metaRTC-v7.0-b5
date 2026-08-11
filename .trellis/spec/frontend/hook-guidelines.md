@@ -1,51 +1,80 @@
 # Hook Guidelines
 
-> How hooks are used in this project.
+> How reusable UI logic and callbacks are organized in the metaRTC Qt frontend.
 
 ---
 
 ## Overview
 
-<!--
-Document your project's hook conventions here.
+Qt does not use React-style hooks. Instead, reusable UI logic is organized through:
 
-Questions to answer:
-- What custom hooks do you have?
-- How do you handle data fetching?
-- What are the naming conventions?
-- How do you share stateful logic?
--->
+- **C++ interfaces** (`YangSysMessageHandleI`, `YangSysMessageI`)
+- **Qt signals/slots**
+- **Factory classes** (`YangPushFactory`, `YangPlayFactory`)
+- **Worker threads** (`YangRecordThread`)
 
-(To be filled by the team)
+This document documents the equivalent patterns for "hooks" in this codebase.
 
 ---
 
-## Custom Hook Patterns
+## Interface-Based Callbacks
 
-<!-- How to create and structure custom hooks -->
+Backend-to-frontend communication uses pure C++ interfaces. For example, `RecordMainWindow` implements `YangSysMessageHandleI` to receive system messages:
 
-(To be filled by the team)
+```cpp
+class RecordMainWindow : public QMainWindow, public YangSysMessageHandleI {
+public:
+    virtual void receiveSysMessage(YangSysMessage* psm, int32_t phandleRet);
+};
+```
+
+Keep interfaces small and focused on a single responsibility.
 
 ---
 
-## Data Fetching
+## Qt Signals and Slots
 
-<!-- How data fetching is handled (React Query, SWR, etc.) -->
+Use signals/slots for cross-thread communication and decoupled UI updates:
 
-(To be filled by the team)
+```cpp
+// In worker thread
+void YangRecordThread::captureFrame() {
+    // ...
+    emit frameReady(frame);
+}
+
+// In widget
+connect(recordThread, &YangRecordThread::frameReady,
+        playWidget, &YangPlayWidget::updateFrame);
+```
+
+- Use `Qt::QueuedConnection` when sender and receiver live in different threads.
+- Avoid blocking the UI thread with synchronous signal emissions.
 
 ---
 
-## Naming Conventions
+## Factories
 
-<!-- Hook naming rules (use*, etc.) -->
+Factories abstract backend creation. Prefer them over direct `new` in UI code:
 
-(To be filled by the team)
+```cpp
+YangSysMessageHandle* sys = YangPushFactory::CreatePushMessageHandle(
+    win.m_hasAudio, win.m_videoType, &win.m_screenInfo,
+    &win.m_outInfo, win.m_context, &win, &win);
+```
 
 ---
 
 ## Common Mistakes
 
-<!-- Hook-related mistakes your team has made -->
+- Mixing backend C callbacks with Qt UI code without a clear adapter.
+- Calling backend methods that block from the UI thread.
+- Creating worker objects on the UI thread but forgetting to move them to a worker thread.
 
-(To be filled by the team)
+---
+
+## Best Practices
+
+- Encapsulate each major feature (capture, encode, play, publish) in its own worker thread or handler class.
+- Use interfaces for backend-to-frontend notifications.
+- Use signals/slots for frontend-to-widget updates.

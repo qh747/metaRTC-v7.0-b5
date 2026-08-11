@@ -1,6 +1,8 @@
 # Thinking Guides
 
 > **Purpose**: Expand your thinking to catch things you might not have considered.
+>
+> **Note for metaRTC**: These guides were pre-filled with generic cross-project principles and some examples from TypeScript/Python ecosystems. When applying them to this C++/Qt project, map the concepts to the conventions documented in [backend](../backend/) and [frontend](../frontend/) specs (e.g., replace "React component" with "Qt Widget", "custom hook" with "C++ interface / Qt signal-slot", "JSON decoder" with `YangJson`).
 
 ---
 
