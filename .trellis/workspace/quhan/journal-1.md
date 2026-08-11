@@ -47,3 +47,24 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: 填充 metaRTC 规范骨架 (backend/frontend)
+
+**Date**: 2026-08-11
+**Task**: 填充 metaRTC 规范骨架 (backend/frontend)
+**Branch**: `develop`
+
+### Summary
+
+将 .trellis/spec/backend/ 和 frontend/ 的占位符文档改写为适配 C++/Qt 项目的真实约定，涵盖目录结构、错误处理、日志、质量准则、Qt 组件、信号槽、状态管理和类型安全；更新 guides/index.md 添加映射说明；归档 00-bootstrap-guidelines 任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ba385d1e` | (see git log) |
+
+### Status
+
+[OK] **Completed**
