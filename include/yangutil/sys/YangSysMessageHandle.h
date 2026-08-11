@@ -28,6 +28,13 @@ public:
 	 */
     virtual void stop();
 
+public:
+	/**
+	 * 启动线程
+	 * @return 0 成功 -1 失败
+	 */
+	virtual int32_t start();
+
 protected:
     /**
 	 * 运行线程任务
@@ -79,12 +86,11 @@ protected:
 	void stopLoop();
 
 public:
-	yangbool m_isStart;
+	std::atomic<yangbool> m_isStart;
 	std::atomic<int32_t> m_loop;
 
 private:
 	std::vector<YangSysMessage*> m_sysMessages;
-	yang_thread_mutex_t m_mutex;
 	yang_thread_mutex_t m_lock;
 	yang_thread_cond_t m_cond_mess;
 

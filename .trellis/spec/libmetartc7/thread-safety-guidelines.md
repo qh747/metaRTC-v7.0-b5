@@ -12,19 +12,20 @@
 
 ### 1.2 本地模式
 
-消息队列的入队和出队应使用同一把 mutex：
+消息队列的入队和出队应使用同一把 mutex。在 `YangSysMessageHandle` 中，这把锁同时兼任条件变量互斥锁的职责：
 
 ```cpp
 // 生产者
-yang_thread_mutex_lock(&m_mutex);
+yang_thread_mutex_lock(&m_lock);
 m_sysMessages.push_back(mes);
-yang_thread_mutex_unlock(&m_mutex);
+yang_thread_cond_signal(&m_cond_mess);
+yang_thread_mutex_unlock(&m_lock);
 
 // 消费者
-yang_thread_mutex_lock(&m_mutex);
+yang_thread_mutex_lock(&m_lock);
 YangSysMessage* mes = m_sysMessages.front();
 m_sysMessages.erase(m_sysMessages.begin());
-yang_thread_mutex_unlock(&m_mutex);
+yang_thread_mutex_unlock(&m_lock);
 ```
 
 ### 1.3 参考文件
@@ -36,9 +37,9 @@ yang_thread_mutex_unlock(&m_mutex);
 ```cpp
 // 错误：在锁外读取 front()、在锁内才 erase
 YangSysMessage* mes = m_sysMessages.front();  // 无锁访问，data race
-yang_thread_mutex_lock(&m_mutex);
+yang_thread_mutex_lock(&m_lock);
 m_sysMessages.erase(m_sysMessages.begin());
-yang_thread_mutex_unlock(&m_mutex);
+yang_thread_mutex_unlock(&m_lock);
 ```
 
 `std::vector` 不是线程安全的，并发 `push_back` 可能触发重新分配，导致无锁的 `front()` 返回失效引用。
@@ -53,12 +54,27 @@ yang_thread_mutex_unlock(&m_mutex);
 
 ### 2.2 本地模式
 
+`cond_wait` 与 `cond_signal` 必须在同一把 mutex 上进行。在 `YangSysMessageHandle` 单锁设计中，这把 `m_lock` 同时保护消息队列：
+
 ```cpp
 // 消费者线程
 yang_thread_mutex_lock(&m_lock);
 while (m_loop.load()) {
     yang_thread_cond_wait(&m_cond_mess, &m_lock);
-    // 处理消息...
+
+    while (true) {
+        if (m_sysMessages.empty()) {
+            break;
+        }
+        YangSysMessage* mes = m_sysMessages.front();
+        m_sysMessages.erase(m_sysMessages.begin());
+
+        // 处理消息前必须释放锁，避免阻塞生产者
+        yang_thread_mutex_unlock(&m_lock);
+        this->handleMessage(mes);
+        delete mes;
+        yang_thread_mutex_lock(&m_lock);
+    }
 }
 yang_thread_mutex_unlock(&m_lock);
 
@@ -100,16 +116,20 @@ if (m_waitState) {              // 无锁读，可能读到旧值
 // 头文件
 #include <atomic>
 std::atomic<int32_t> m_loop;
+std::atomic<yangbool> m_isStart;
 
 // 读写
 if (!m_loop.load()) return;
 m_loop = yangfalse;
+
+m_isStart.store(yangtrue);
+if (m_isStart.load()) { ... }
 ```
 
 ### 3.3 参考文件
 
-- `include/yangutil/sys/YangSysMessageHandle.h`：`m_loop` 声明
-- `libmetartc7/src/yangutil/YangSysMessageHandle.cpp`：`m_loop` 读写位置
+- `include/yangutil/sys/YangSysMessageHandle.h`：`m_loop` / `m_isStart` 声明
+- `libmetartc7/src/yangutil/YangSysMessageHandle.cpp`：`m_loop` / `m_isStart` 读写位置
 
 ### 3.4 反模式
 
@@ -188,10 +208,10 @@ m_instance = (m_instance == NULL) ? this : m_instance;
 ### 5.2 本地模式
 
 ```cpp
-yang_thread_mutex_lock(&m_mutex);
+yang_thread_mutex_lock(&m_lock);
 YangSysMessage* mes = m_sysMessages.front();
 m_sysMessages.erase(m_sysMessages.begin());
-yang_thread_mutex_unlock(&m_mutex);
+yang_thread_mutex_unlock(&m_lock);
 
 // 锁外处理
 this->handleMessage(mes);
@@ -204,7 +224,83 @@ delete mes;
 
 ---
 
-## 6. 验证检查
+## 6. 线程生命周期管理
+
+### 6.1 规则
+
+线程的“启动成功”标志与“正在运行”标志若被多个线程读写，必须声明为 `std::atomic`。基类 `YangThread::start()` 应声明为虚函数，以便派生类在启动成功后立即设置标志。析构时应使用 `join()` 等待线程结束，而不是轮询标志位空转。
+
+### 6.2 本地模式
+
+```cpp
+// YangThread2.h
+class YangThread {
+public:
+    virtual int32_t start();
+    // ...
+};
+
+// YangSysMessageHandle.h
+class YangSysMessageHandle : public YangThread {
+public:
+    virtual int32_t start();
+    std::atomic<yangbool> m_isStart;
+    // ...
+};
+
+// YangSysMessageHandle.cpp
+int32_t YangSysMessageHandle::start() {
+    int32_t ret = YangThread::start();
+    if (ret == 0) {
+        m_isStart.store(yangtrue);
+    }
+    return ret;
+}
+
+void YangSysMessageHandle::run() {
+    this->startLoop();
+    m_isStart.store(yangfalse);
+}
+
+YangSysMessageHandle::~YangSysMessageHandle() {
+    if (m_isStart.load()) {
+        this->stop();
+        this->join();
+    }
+    // ...
+}
+```
+
+### 6.3 参考文件
+
+- `include/yangutil/sys/YangThread2.h`：`start()` 虚函数声明
+- `include/yangutil/sys/YangSysMessageHandle.h`：`m_isStart` 声明、`start()` 覆盖声明
+- `libmetartc7/src/yangutil/YangSysMessageHandle.cpp`：`start()` / `run()` / 析构函数
+
+### 6.4 反模式
+
+```cpp
+// 错误：在工作线程 run() 里才设置 m_isStart，start() 与析构之间存在竞态窗口
+void YangSysMessageHandle::run() {
+    m_isStart = yangtrue;  // 线程已创建，但标志还没设置
+    this->startLoop();
+    m_isStart = yangfalse;
+}
+
+// 错误：析构里用自旋等待
+~YangSysMessageHandle() {
+    if (m_isStart) {
+        this->stop();
+        while (m_isStart) {  // 空转，且非原子时可能永远等不到
+            yang_usleep(1000);
+        }
+    }
+}
+```
+
+---
+
+## 7. 验证检查
 
 新增或修改共享状态时，检查以下问题：
 
@@ -213,12 +309,14 @@ delete mes;
 3. 跨线程标志位是否为 `std::atomic`？
 4. 单例指针是否有同步保护，是否暴露到了头文件？
 5. 耗时操作是否持有不应长期持有的锁？
+6. 线程启动/停止标志是否在启动成功后立即设置，析构是否使用 `join()`？
 
 ---
 
-## 7. 相关修复记录
+## 8. 相关修复记录
 
-- `YangSysMessageHandle` 消息队列竞态修复：`m_sysMessages` 无锁访问导致 data race / use-after-free。
+- `YangSysMessageHandle` 消息队列竞态修复：`m_sysMessages` 无锁访问导致 data race / use-after-free；后合并 `m_mutex` 与 `m_lock` 为单锁，简化同步模型。
 - `YangSysMessageHandle` 条件变量修复：移除 `m_waitState`，改为无条件 `cond_signal` + `m_lock`。
-- `YangSysMessageHandle` 标志位修复：`m_loop` 改为 `std::atomic<int32_t>`。
+- `YangSysMessageHandle` 标志位修复：`m_loop` 改为 `std::atomic<int32_t>`，`m_isStart` 改为 `std::atomic<yangbool>`。
 - `YangSysMessageHandle` 单例修复：`m_instance` 改为文件级 `std::atomic<YangSysMessageHandle*>`。
+- `YangSysMessageHandle` 线程生命周期修复：`YangThread::start()` 改为虚函数，派生类在启动成功后立即设置 `m_isStart`；析构改用 `join()` 替代自旋等待。

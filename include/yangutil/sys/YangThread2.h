@@ -39,7 +39,7 @@ public:
 	 * 启动线程
 	 * @return 0 成功 -1 失败
 	 */
-	int32_t start();
+	virtual int32_t start();
 
 	/**
 	 * 等待线程结束

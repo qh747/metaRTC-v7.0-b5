@@ -8,7 +8,7 @@
 #include <yangutil/yangavinfotype.h>
 #include <yangutil/sys/YangSysMessageHandle.h>
 
-static std::atomic<YangSysMessageHandle*> g_instance{nullptr};
+static std::atomic<YangSysMessageHandle*> g_instance{ nullptr };
 
 void yang_post_message(int32_t st, int32_t uid, YangSysMessageI* handle, void* user) {
 	YangSysMessageHandle* inst = g_instance.load();
@@ -31,7 +31,6 @@ YangSysMessageHandle::YangSysMessageHandle() {
 	m_loop = yangfalse;
 	m_isStart = yangfalse;
 
-	yang_thread_mutex_init(&m_mutex, NULL);
 	yang_thread_mutex_init(&m_lock, NULL);
 	yang_thread_cond_init(&m_cond_mess, NULL);
 
@@ -39,26 +38,29 @@ YangSysMessageHandle::YangSysMessageHandle() {
 }
 
 YangSysMessageHandle::~YangSysMessageHandle() {
-	if (m_isStart) {
+	if (m_isStart.load()) {
 		this->stop();
-
-		while (m_isStart) {
-			yang_usleep(1000);
-		}
+		this->join();
 	}
 
 	YangSysMessageHandle* expected = this;
 	g_instance.compare_exchange_strong(expected, nullptr);
 
-	yang_thread_mutex_destroy(&m_mutex);
 	yang_thread_mutex_destroy(&m_lock);
 	yang_thread_cond_destroy(&m_cond_mess);
 }
 
+int32_t YangSysMessageHandle::start() {
+	int32_t ret = YangThread::start();
+	if (ret == 0) {
+		m_isStart.store(yangtrue);
+	}
+	return ret;
+}
+
 void YangSysMessageHandle::run() {
-	m_isStart = yangtrue;
     this->startLoop();
-	m_isStart = yangfalse;
+	m_isStart.store(yangfalse);
 }
 
 void YangSysMessageHandle::stop() {
@@ -79,11 +81,8 @@ void YangSysMessageHandle::putMessage(
 	mes->handle = handle;
     mes->user=user;
 
-    yang_thread_mutex_lock(&m_mutex);
+    yang_thread_mutex_lock(&m_lock);
 	m_sysMessages.push_back(mes);
-	yang_thread_mutex_unlock(&m_mutex);
-
-	yang_thread_mutex_lock(&m_lock);
 	yang_thread_cond_signal(&m_cond_mess);
 	yang_thread_mutex_unlock(&m_lock);
 }
@@ -96,19 +95,18 @@ void YangSysMessageHandle::startLoop() {
         yang_thread_cond_wait(&m_cond_mess, &m_lock);
 
         while (true) {
-            yang_thread_mutex_lock(&m_mutex);
             if (m_sysMessages.empty()) {
-                yang_thread_mutex_unlock(&m_mutex);
                 break;
             }
 
             YangSysMessage* mes = m_sysMessages.front();
             m_sysMessages.erase(m_sysMessages.begin());
-            yang_thread_mutex_unlock(&m_mutex);
-        
+
+            yang_thread_mutex_unlock(&m_lock);
             this->handleMessage(mes);
             mes->handle = NULL;
             delete mes;
+            yang_thread_mutex_lock(&m_lock);
         }
     }
     yang_thread_mutex_unlock(&m_lock);
