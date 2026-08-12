@@ -30,13 +30,12 @@ public:
     virtual ~RecordMainWindow();
 
 public:
-    virtual void success();
+    virtual void success() {}
     virtual void failure(int32_t errcode);
-    
     virtual void receiveSysMessage(YangSysMessage* psm, int32_t phandleRet);
 
 public:
-    void initPreview();
+    void startCapture();
     void initVideoThread(YangRecordThread* prt);
     void closeEvent( QCloseEvent* event );
 
@@ -70,9 +69,6 @@ public:
 private:
     bool m_initRecord;
     Ui::RecordMainWindow* ui;
-
-    int m_screenWidth;
-    int m_screenHeight;
 
     int32_t m_isStartpush;
     bool m_isStartRecord;

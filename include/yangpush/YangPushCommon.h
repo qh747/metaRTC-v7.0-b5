@@ -4,10 +4,13 @@
 #ifndef INCLUDE_YANGPUSH_YANGPUSHCOMMON_H_
 #define INCLUDE_YANGPUSH_YANGPUSHCOMMON_H_
 
-
+// 摄像头源
 #define Yang_VideoSrc_Camera 0
+// 屏幕源
 #define Yang_VideoSrc_Screen 1
+// 外部接口输入
 #define Yang_VideoSrc_OutInterface 2
+
 enum YangPushMessageType {
 	YangM_Push_StartAudioCapture,
 	YangM_Push_StartVideoCapture,
@@ -22,7 +25,6 @@ enum YangPushMessageType {
 	YangM_Push_SwitchToScreen,
 	YangM_Sys_Setvr,
 	YangM_Sys_UnSetvr
-
 };
 
-#endif /* INCLUDE_YANGPUSH_YANGPUSHCOMMON_H_ */
+#endif // INCLUDE_YANGPUSH_YANGPUSHCOMMON_H_

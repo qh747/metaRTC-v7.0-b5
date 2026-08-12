@@ -75,7 +75,7 @@ RecordMainWindow::RecordMainWindow(QWidget* parent) : QMainWindow(parent), ui(ne
 #endif
 
     m_videoType = Yang_VideoSrc_Camera;
-    m_hasAudio = (m_videoType == Yang_VideoSrc_Screen) ? false : true;
+    m_hasAudio = true;
 
     m_isStartpush = 0;
     m_isStartRecord = false;
@@ -110,21 +110,16 @@ RecordMainWindow::RecordMainWindow(QWidget* parent) : QMainWindow(parent), ui(ne
 
 #if (QT_VERSION < QT_VERSION_CHECK(6,0,0))
     QDesktopWidget* desk = QApplication::desktop();
-    m_screenWidth = desk->screenGeometry().width();
-    m_screenHeight = desk->screenGeometry().height();
+    m_screenInfo.width = desk->screenGeometry().width();
+    m_screenInfo.height = desk->screenGeometry().height();
+
+    m_screenInfo.outWidth = m_screenInfo.width;
+    m_screenInfo.outHeight = m_screenInfo.height;
 #endif
-    m_screenInfo.width = m_screenWidth;
-    m_screenInfo.height = m_screenHeight;
-    m_screenInfo.outWidth = m_screenWidth;
-    m_screenInfo.outHeight = m_screenHeight;
 }
 
 RecordMainWindow::~RecordMainWindow() {
     this->closeAll();
-}
-
-void RecordMainWindow::success() {
-
 }
 
 void RecordMainWindow::failure(int32_t errcode) {
@@ -206,7 +201,7 @@ void RecordMainWindow::closeAll() {
     delete ui;
 }
 
-void RecordMainWindow::initPreview() {
+void RecordMainWindow::startCapture() {
     switch (m_videoType) {
         case Yang_VideoSrc_Screen: {
             yang_post_message(YangM_Push_StartScreenCapture, 0, NULL);

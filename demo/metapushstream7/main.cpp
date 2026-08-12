@@ -47,18 +47,23 @@ int main(int argc, char *argv[]) {
         win.m_context,
         &win,
         &win);
-
+    
+    // 启动消息处理线程
     win.m_message = sys;
     sys->start();
 
+    // 启动视频渲染线程
     YangRecordThread videoThread;
     win.initVideoThread(&videoThread);
-
     videoThread.start();
+
     win.show();
-    
+
+    // 等待线程启动完成
     QThread::msleep(200);
-    win.initPreview();
+
+    // 启动视频捕获
+    win.startCapture();
 
     return a.exec();
 }
