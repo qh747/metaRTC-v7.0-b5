@@ -7,43 +7,53 @@
 #include <yangpush/YangPushHandle.h>
 #include <yangpush/YangRtcPublish.h>
 #include <yangpush/YangSendVideoImpl.h>
-
 #include <yangutil/sys/YangUrl.h>
 
-
-class YangPushHandleImpl :public YangPushHandle{
+class YangPushHandleImpl :public YangPushHandle {
 public:
-	YangPushHandleImpl(bool hasAudio,bool initVideo,int pvideotype,YangVideoInfo* screenvideo,YangVideoInfo* outvideo,YangContext* pcontext,YangSysMessageI* pmessage);
+	YangPushHandleImpl(
+		bool hasAudio,
+		bool initVideo,
+		int videoType,
+		YangVideoInfo* screenVideo,
+		YangVideoInfo* outVideo,
+		YangContext* context,
+		YangSysMessageI* message
+	);
+	
 	virtual ~YangPushHandleImpl();
-	void init();
+
+public:
+    virtual int32_t publish(char* url, yangbool isWihp);
+	virtual void disconnect();
+
+	virtual void init();
+    virtual void changeSrc(int videoSrcType,bool pisinit);
+
+	virtual YangVideoBuffer* getPreVideoBuffer();
+	virtual YangSendVideoI* getSendVideo();
+
+public:
 	void startCapture();
-    int32_t publish(char* url,yangbool isWihp);
-
-	YangVideoBuffer* getPreVideoBuffer();
-
-	void disconnect();
-	void changeSrc(int videoSrcType,bool pisinit);
 
 	void addVr();
 	void delVr();
 
-	YangSendVideoI* getSendVideo();
-	YangSendVideoImpl* m_send;
-
 private:
     void startCamera();
-
     void stopCamera();
 
 	void stopPublish();
 
 	void switchToCamera(bool pisinit);
-
 	void switchToOutside(bool pisinit);
+
+public:
+    YangSendVideoImpl* m_send;
 
 private:
 	bool m_hasAudio;
-	int m_videoState;
+	int m_videoType;
 	bool m_isInit;
 
 	YangPushPublish* m_cap;
@@ -58,4 +68,4 @@ private:
 
 };
 
-#endif /* YANGPUSH_YANGPUSHHANDLEIMPL_H_ */
+#endif // YANGPUSH_YANGPUSHHANDLEIMPL_H_
