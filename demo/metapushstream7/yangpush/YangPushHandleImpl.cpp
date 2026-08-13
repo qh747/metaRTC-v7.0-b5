@@ -28,8 +28,6 @@ YangPushHandleImpl::YangPushHandleImpl(
 	m_isInit = initVideo;
 
 	this->init();
-
-	m_send = NULL;
 }
 
 YangPushHandleImpl::~YangPushHandleImpl() {
@@ -37,9 +35,7 @@ YangPushHandleImpl::~YangPushHandleImpl() {
 		m_rtcPub->disConnectMediaServer();
 	}
 
-	if (m_cap) {
-		m_cap->stopAll();
-	}
+	m_cap->stopAll();
 
 	yang_delete(m_rtcPub);
 	yang_delete(m_cap);
@@ -47,143 +43,132 @@ YangPushHandleImpl::~YangPushHandleImpl() {
 
 void YangPushHandleImpl::disconnect() {
 	if (m_cap) {
-		if(m_hasAudio) m_cap->stopAudioCaptureState();
+		if (m_hasAudio) {
+			m_cap->stopAudioCaptureState();
+		}
+		
 		m_cap->stopVideoCaptureState();
 		m_cap->stopScreenCaptureState();
 	}
-	stopPublish();
+
+	this->stopPublish();
 }
+
 void YangPushHandleImpl::init() {
-	if(m_isInit) return;
-	changeSrc(m_videoType,true);
-	m_isInit=true;
-}
-void YangPushHandleImpl::startCapture() {
-
-}
-YangSendVideoI* YangPushHandleImpl::getSendVideo(){
-	if(m_send==NULL&&m_videoType==Yang_VideoSrc_OutInterface) {
-		m_send=new YangSendVideoImpl();
-		if(m_cap){
-			m_send->m_outVideoBuffer=m_cap->getOutVideoBuffer();
-			m_send->m_outPreVideoBuffer=m_cap->getOutPreVideoBuffer();
-		}
+	if(m_isInit) {
+		return;
 	}
-	return m_send;
+
+	this->changeSrc(m_videoType);
+	m_isInit = true;
 }
-void YangPushHandleImpl::switchToCamera(bool pisinit) {
+
+void YangPushHandleImpl::switchToCamera() {
 	m_videoType = Yang_VideoSrc_Camera;
-	if(m_cap) m_cap->setCaptureType(m_videoType);
-	if(m_cap) m_cap->setVideoInfo(&m_context->avinfo.video);
-	//if(!pisinit) stopScreen();
 
-	startCamera();
+	m_cap->setCaptureType(m_videoType);
+	this->startCamera();
 }
 
+void YangPushHandleImpl::changeSrc(int videoType) {
+	m_videoType = videoType;
 
-
-void YangPushHandleImpl::switchToOutside(bool pisinit){
-	if(m_cap) m_cap->setCaptureType(m_videoType);
-	if(m_cap) m_cap->setVideoInfo(m_outInfo);
-
-}
-void YangPushHandleImpl::changeSrc(int videoSrcType,bool pisinit){
-	m_videoType=videoSrcType;
-	if(m_videoType==Yang_VideoSrc_Camera){
-			switchToCamera(pisinit);
-		}
+	if (m_videoType == Yang_VideoSrc_Camera) {
+		this->switchToCamera();
+	}
 }
 
 void YangPushHandleImpl::stopPublish() {
 	if (m_rtcPub) {
 		m_rtcPub->disConnectMediaServer();
 	}
+
 	yang_stop(m_rtcPub);
 	yang_stop_thread(m_rtcPub);
 	yang_delete(m_rtcPub);
-	if(m_cap) m_cap->deleteVideoEncoding();
+	
+	m_cap->deleteVideoEncoding();
 }
+
 YangVideoBuffer* YangPushHandleImpl::getPreVideoBuffer() {
 	if (m_videoType == Yang_VideoSrc_Camera) {
-		if (m_cap)	return m_cap->getPreVideoBuffer();
+		return m_cap->getPreVideoBuffer();
 	}
+
 	return NULL;
 }
 
-
-
-
-int YangPushHandleImpl::publish(char* url,yangbool isWhip) {
-
+int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 	int err = Yang_Ok;
-	memset(&m_url,0,sizeof(m_url));
-    if(!isWhip){
-        if(yang_url_parse(m_context->avinfo.sys.familyType,url, &m_url)==Yang_Ok){
-            yang_trace("\nnetType==%d,server=%s,port=%d,app=%s,stream=%s\n",
-                    m_url.netType, m_url.server, m_url.port, m_url.app,
-                    m_url.stream);
+	memset(&m_url, 0, sizeof(m_url));
 
-        }else{
-            return 1;
-        }
+    if (!isWhip) {
+        err = yang_url_parse(m_context->avinfo.sys.familyType, url,  &m_url);
+
+		if (err != Yang_Ok) {
+			return err;
+		}
     }
-	m_context->avinfo.sys.transType=m_url.netType;
-	 m_context->avinfo.audio.audioEncoderType=Yang_AED_OPUS;
-	 m_context->avinfo.audio.sample=48000;
 
+	m_context->avinfo.sys.transType = m_url.netType;
+	m_context->avinfo.audio.audioEncoderType = Yang_AED_OPUS;
+	m_context->avinfo.audio.sample = 48000;
 
-	stopPublish();
-	yang_trace("\nnetType==%d,server=%s,port=%d,app=%s,stream=%s\n",
-			m_url.netType, m_url.server, m_url.port, m_url.app,
-			m_url.stream);
+	this->stopPublish();
+
+	yang_trace(
+		"\nnetType==%d,server=%s,port=%d,app=%s,stream=%s\n",
+        m_url.netType, 
+		m_url.server, 
+		m_url.port, 
+		m_url.app,
+        m_url.stream
+	);
 
 	if (m_rtcPub == NULL) {
 		m_rtcPub = new YangRtcPublish(m_context);
-
 	}
 
-	  if(m_hasAudio) {
-	        m_hasAudio=bool(m_cap->startAudioCapture()==Yang_Ok);
-	    }
+	if (m_hasAudio && m_cap->startAudioCapture() == Yang_Ok) {
+	    m_cap->initAudioEncoding();
+	}
+	else {
+		m_hasAudio = false;
+	}
+
+	m_cap->initVideoEncoding();
+	m_cap->setRtcNetBuffer(m_rtcPub);
+
 	if (m_hasAudio) {
+        m_cap->startAudioEncoding();
+	}
+		
+	m_cap->startVideoEncoding();
 
-			m_cap->initAudioEncoding();
-		}
+    err = m_rtcPub->init(url, isWhip);
 
-		m_cap->initVideoEncoding();
-		m_cap->setRtcNetBuffer(m_rtcPub);
-
-		if (m_hasAudio)
-			m_cap->startAudioEncoding();
-		m_cap->startVideoEncoding();
-
-        if(isWhip){
-             err = m_rtcPub->init(url,yangtrue);
-
-        }else{
-            err = m_rtcPub->init(url,yangfalse) ;
-        }
-
-            if (err != Yang_Ok)
-                    return yang_error_wrap(err, " connect server failure!");
+    if (err != Yang_Ok) {
+        return yang_error_wrap(err, " connect server failure!");
+	}
+                
 	m_rtcPub->start();
-	if (m_hasAudio)
+
+	if (m_hasAudio) {
 		m_cap->startAudioCaptureState();
-	if (m_videoType == Yang_VideoSrc_Camera)
+	}
+		
+	if (m_videoType == Yang_VideoSrc_Camera) {
 		m_cap->startVideoCaptureState();
+	}
 
 	return err;
-
 }
 
 void YangPushHandleImpl::startCamera() {
-	if(m_cap) m_cap->startCamera();
+	m_cap->startCamera();
 }
-
 
 void YangPushHandleImpl::stopCamera() {
-	if(m_cap) m_cap->stopCamera();
+	m_cap->stopCamera();
 }
-
-
 

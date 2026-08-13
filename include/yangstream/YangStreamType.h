@@ -12,16 +12,14 @@ class YangMediaConfigCallback {
 public:
 	YangMediaConfigCallback() {};
 	virtual ~YangMediaConfigCallback() {};
-	virtual void setMediaConfig(int32_t puid, YangAudioParam *audio,
-			YangVideoParam *video)=0;
+	virtual void setMediaConfig(int32_t puid, YangAudioParam* audio, YangVideoParam* video) = 0;
 };
 
 class YangSendRequestCallback {
 public:
 	YangSendRequestCallback() {};
 	virtual ~YangSendRequestCallback() {};
-	virtual void sendRequest(int32_t puid, uint32_t ssrc,
-			YangRequestType req)=0;
+	virtual void sendRequest(int32_t puid, uint32_t ssrc, YangRequestType req) = 0;
 };
 
 #endif

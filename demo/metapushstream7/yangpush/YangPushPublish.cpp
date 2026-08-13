@@ -5,10 +5,10 @@
 #include <yangpush/YangPushCommon.h>
 
 
-YangPushPublish::YangPushPublish(YangContext *pcontext) {
-	m_context = pcontext;
+YangPushPublish::YangPushPublish(YangContext* context) {
+	m_context = context;
 	m_context->streams->setSendRequestCallback(this);
-	m_videoInfo=&pcontext->avinfo.video;
+	m_videoInfo=&context->avinfo.video;
 	m_encoder = NULL;
 	m_capture = NULL;
 	m_outPreVideoBuffer=NULL;
@@ -16,7 +16,6 @@ YangPushPublish::YangPushPublish(YangContext *pcontext) {
 	isStartAudioCapture = 0, isStartVideoCapture = 0,isStartScreenCapture=0;
 	isStartAudioEncoder = 0, isStartVideoEncoder = 0;
 	m_captureType=Yang_VideoSrc_Camera;
-
 }
 
 YangPushPublish::~YangPushPublish() {
@@ -40,13 +39,7 @@ void YangPushPublish::sendRequest(int32_t puid,uint32_t ssrc,YangRequestType req
 void YangPushPublish::setCaptureType(int pct){
 	m_captureType=pct;
 }
-void YangPushPublish::setVideoInfo(YangVideoInfo* pvideo){
-	m_videoInfo=pvideo;
-	if(m_captureType==Yang_VideoSrc_OutInterface) {
-		if(m_outVideoBuffer==NULL) m_outVideoBuffer=new YangVideoBuffer(pvideo->width,pvideo->height,pvideo->videoEncoderFormat,m_context->avinfo.video.bitDepth==8?1:2);
-		if(m_outPreVideoBuffer==NULL) m_outPreVideoBuffer=new YangVideoBuffer(pvideo->width,pvideo->height,pvideo->videoEncoderFormat,m_context->avinfo.video.bitDepth==8?1:2);
-	}
-}
+
 void YangPushPublish::stopAll(){
 	if(m_capture) m_capture->stopAll();
 	if(m_encoder) m_encoder->stopAll();
@@ -109,19 +102,13 @@ void YangPushPublish::setInAudioBuffer(vector<YangAudioPlayBuffer*> *pbuf){
 	if(m_capture) m_capture->setInAudioBuffer(pbuf);
 }
 void YangPushPublish::initVideoEncoding() {
-	if (isStartVideoEncoder == 1)	return;
+	if (isStartVideoEncoder == 1 || m_captureType != Yang_VideoSrc_Camera)	return;
 	if (m_encoder == NULL)
 		m_encoder = new YangPushEncoder(m_context);
 	m_encoder->setVideoInfo(m_videoInfo);
 
 	m_encoder->initVideoEncoder();
-	if(m_captureType==Yang_VideoSrc_Camera){
-		m_encoder->setInVideoBuffer(m_capture->getOutVideoBuffer());
-	}else if(m_captureType==Yang_VideoSrc_Screen){
-		m_encoder->setInVideoBuffer(m_capture->getScreenOutVideoBuffer());
-	}else if(m_captureType==Yang_VideoSrc_OutInterface){
-		m_encoder->setInVideoBuffer(m_outVideoBuffer);
-	}
+	m_encoder->setInVideoBuffer(m_capture->getOutVideoBuffer());
 	isStartVideoEncoder = 1;
 }
 void YangPushPublish::startAudioEncoding() {

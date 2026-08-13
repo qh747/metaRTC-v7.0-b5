@@ -45,22 +45,10 @@ void YangPushMessageHandle::handleMessage(YangSysMessage* mss) {
 	switch (mss->messageId) {
 	    case YangM_Push_StartVideoCapture: {
             if (m_push) {
-                m_push->changeSrc(Yang_VideoSrc_Camera, false);
+                m_push->changeSrc(Yang_VideoSrc_Camera);
 			}
 	    	break;
 	    }
-	    case YangM_Push_StartScreenCapture: {
-            if (m_push) {
-				m_push->changeSrc(Yang_VideoSrc_Screen, false);
-			}
-			break;
-	    }
-        case YangM_Push_StartOutCapture: {
-            if (m_push) {
-				m_push->changeSrc(Yang_VideoSrc_OutInterface, false);
-			}
-            break;
-        }
         case YangM_Push_Connect: {
             if (mss->user && m_push) {
 				ret = m_push->publish((char*)mss->user, yangfalse);
@@ -79,38 +67,6 @@ void YangPushMessageHandle::handleMessage(YangSysMessage* mss) {
 			}
 			break;
         }
-		case YangM_Push_SwitchToCamera: {
-            if (m_push) {
-				m_push->changeSrc(Yang_VideoSrc_Camera,false);
-			}
-			break;
-        }
-		case YangM_Push_SwitchToScreen: {
-            if (m_push) {
-				m_push->changeSrc(Yang_VideoSrc_Screen,false);
-            }
-			break;
-		}
-		break;
-		case YangM_Sys_Setvr: {
-		    ret = Yang_Ok;
-
-#if Yang_Enable_Vr
-		    if (m_push) {
-				m_push->addVr();
-			}
-#endif
-		    break;
-		}
-	    case YangM_Sys_UnSetvr: {
-		    ret = Yang_Ok;
-#if Yang_Enable_Vr
-		    if (m_push) {
-				m_push->delVr();
-			}
-#endif
-		    break;
-		}
 	}
 
 	if (mss->handle) {

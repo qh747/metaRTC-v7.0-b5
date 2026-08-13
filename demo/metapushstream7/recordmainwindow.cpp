@@ -139,38 +139,12 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
         case YangM_Push_Disconnect: {
             break;
         }
-        case YangM_Push_StartScreenCapture: {
-            m_rt->m_videoBuffer = (m_context->avinfo.video.videoEncoderFormat == YangArgb) ?
-                NULL : 
-                YangPushFactory::GetPreVideoBuffer(m_message);
-            
-            qDebug() << "message===" << m_message 
-                     << "..prevideobuffer===" << m_rt->m_videoBuffer 
-                     << "....ret====" << err;
-            break;
-        }
         case YangM_Push_StartVideoCapture: {
             m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
             
             qDebug() << "message===" << m_message 
                      << "..prevideobuffer===" << m_rt->m_videoBuffer 
                      << "....ret====" << err;
-            break;
-        }
-        case YangM_Push_StartOutCapture: {
-            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
-                
-            qDebug() << "message===" << m_message 
-                     << "..prevideobuffer===" << m_rt->m_videoBuffer 
-                     << "....ret====" << err;
-            break;
-        }
-        case YangM_Push_SwitchToCamera: {
-            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
-            break;
-        }
-        case YangM_Push_SwitchToScreen: {
-            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
             break;
         }
     }
@@ -202,23 +176,7 @@ void RecordMainWindow::closeAll() {
 }
 
 void RecordMainWindow::startCapture() {
-    switch (m_videoType) {
-        case Yang_VideoSrc_Screen: {
-            yang_post_message(YangM_Push_StartScreenCapture, 0, NULL);
-            break;
-        }
-        case Yang_VideoSrc_Camera: {
-            yang_post_message(YangM_Push_StartVideoCapture, 0, NULL);
-            break;
-        }
-        case Yang_VideoSrc_OutInterface: {
-            yang_post_message(YangM_Push_StartOutCapture, 0, NULL);
-            break;
-        }
-        default: {
-            break;
-        }
-    }
+    yang_post_message(YangM_Push_StartVideoCapture, 0, NULL);
 }
 
 void RecordMainWindow::on_m_b_rec_clicked() {
@@ -233,10 +191,12 @@ void RecordMainWindow::on_m_b_rec_clicked() {
 
         yang_post_message(
             ui->m_c_whip->checkState() == Qt::CheckState::Checked ? 
-                YangM_Push_Connect_Whip : YangM_Push_Connect,
+                YangM_Push_Connect_Whip : 
+                YangM_Push_Connect,
             0,
             NULL,
-            (void*)m_url.c_str());
+            (void*)m_url.c_str()
+        );
     }
     else{
         ui->m_b_rec->setText("start");

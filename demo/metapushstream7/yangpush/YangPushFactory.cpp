@@ -30,12 +30,3 @@ YangVideoBuffer* YangPushFactory::GetPreVideoBuffer(YangSysMessageHandle* messag
 	YangPushMessageHandle* pushHandle = dynamic_cast<YangPushMessageHandle*>(messageHandle);
 	return (pushHandle && pushHandle->m_push) ? pushHandle->m_push->getPreVideoBuffer() : NULL;
 }
-
-YangSendVideoI* YangPushFactory::GetSendVideo(YangSysMessageHandle* messageHandle) {
-	if(messageHandle == NULL) {
-		return NULL;
-	}
-
-	YangPushMessageHandle* pushHandle = dynamic_cast<YangPushMessageHandle*>(messageHandle);
-	return (pushHandle && pushHandle->m_push) ? pushHandle->m_push->getSendVideo() : NULL;
-}

@@ -3,6 +3,7 @@
 //
 #ifndef YangPushPublish_H
 #define YangPushPublish_H
+
 #include <yangutil/buffer/YangAudioEncoderBuffer.h>
 #include <yangutil/buffer/YangVideoEncoderBuffer.h>
 #include <yangutil/buffer/YangAudioBuffer.h>
@@ -11,68 +12,81 @@
 #include <yangpush/YangPushEncoder.h>
 #include <yangpush/YangRtcPublish.h>
 
-class YangPushPublish: public YangSendRequestCallback {
+class YangPushPublish : public YangSendRequestCallback {
 public:
-	YangPushPublish(YangContext *pcontext);
+	YangPushPublish(YangContext* context);
 	virtual ~YangPushPublish();
 
-	void setCaptureType(int pct);
+public:
+    virtual void sendRequest(int32_t uid, uint32_t ssrc, YangRequestType type);
 
+public:
 	void startCamera();
-
 	void stopCamera();
 
-	void setScreenInterval(int32_t pinterval);
+	void stopAll();
+    
+	void setCaptureType(int pct);
+	void setScreenInterval(int32_t interval);
 	void setDrawmouse(bool isDraw);
-	void setRtcNetBuffer(YangRtcPublish *prr);
+	void setRtcNetBuffer(YangRtcPublish* prr);
+	
+    void setInAudioBuffer(std::vector<YangAudioPlayBuffer*>* pbuf);
+
+	YangPushCapture* getPushCapture();
+	YangVideoBuffer* getPreVideoBuffer();
+	YangVideoBuffer* getOutPreVideoBuffer();
+	YangVideoBuffer* getOutVideoBuffer();
 
 	void startPubVideo();
 	void startPubAudio();
+
 	void initAudioEncoding();
 	void initVideoEncoding();
-	void setVideoInfo(YangVideoInfo *pvideo);
+
 	int32_t startAudioCapture();
 	int32_t startVideoCapture();
 
-
-	void initVideoMeeting();
 	void startAudioEncoding();
 	void startVideoEncoding();
+
 	void deleteVideoEncoding();
+
 	void startAudioCaptureState();
 	void startVideoCaptureState();
 
 	void stopAudioCaptureState();
 	void stopVideoCaptureState();
 	void stopScreenCaptureState();
-	YangVideoBuffer* getPreVideoBuffer();
-
-	YangVideoBuffer* getOutPreVideoBuffer();
-	YangVideoBuffer* getOutVideoBuffer();
-	void stopAll();
-	void setInAudioBuffer(vector<YangAudioPlayBuffer*> *pbuf);
+	
 	void change(int32_t st);
-
-	void sendRequest(int32_t puid, uint32_t ssrc, YangRequestType req);
 	void sendMsgToEncoder(YangRequestType req);
-	YangPushCapture* getPushCapture();
-protected:
 
+private:
+    void stopAudioState();
+	void stopVideoState();
+
+	void initCapture();
+	
 private:
 	YangVideoBuffer* m_outVideoBuffer;
 	YangVideoBuffer* m_outPreVideoBuffer;
-private:
-	YangContext *m_context;
-	YangPushEncoder *m_encoder;
-	YangPushCapture *m_capture;
 
-	YangVideoInfo *m_videoInfo;
-	int32_t isStartAudioCapture, isStartVideoCapture, isStartScreenCapture;
-	int32_t isStartAudioEncoder, isStartVideoEncoder;
-	void stopAudioState();
-	void stopVideoState();
-	void initCapture();
+	YangContext* m_context;
+
+	YangPushEncoder* m_encoder;
+	YangPushCapture* m_capture;
+
+	YangVideoInfo* m_videoInfo;
+
+	int32_t isStartAudioCapture;
+	int32_t isStartVideoCapture;
+	int32_t isStartScreenCapture;
+
+	int32_t isStartAudioEncoder;
+	int32_t isStartVideoEncoder;
+	
 	int m_captureType;
 };
 
-#endif //
+#endif // YangPushPublish_H

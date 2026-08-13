@@ -36,13 +36,6 @@ public:
 	 * @return 预视频缓冲区
 	 */
 	static YangVideoBuffer* GetPreVideoBuffer(YangSysMessageHandle* messageHandle);
-
-	/**
-	 * 获取发送视频接口
-	 * @param messageHandle 消息句柄
-	 * @return 发送视频接口
-	 */
-	static YangSendVideoI* GetSendVideo(YangSysMessageHandle* messageHandle);
 };
 
 #endif // INCLUDE_YANGPUSH_YANGPUSHFACTORY_H_

@@ -5,7 +5,6 @@
 #ifndef SRC_YANGMEETING_INCLUDE_YangRtcPublish_H_
 #define SRC_YANGMEETING_INCLUDE_YangRtcPublish_H_
 #include <yangrtc/YangPeerConnection7.h>
-#include <string>
 #include <yangutil/yangavinfotype.h>
 #include <yangutil/sys/YangThread2.h>
 #include <yangutil/sys/YangSysMessageI.h>

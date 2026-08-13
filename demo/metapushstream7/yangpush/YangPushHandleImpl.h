@@ -28,16 +28,9 @@ public:
 	virtual void disconnect();
 
 	virtual void init();
-    virtual void changeSrc(int videoSrcType,bool pisinit);
+    virtual void changeSrc(int videoType);
 
 	virtual YangVideoBuffer* getPreVideoBuffer();
-	virtual YangSendVideoI* getSendVideo();
-
-public:
-	void startCapture();
-
-	void addVr();
-	void delVr();
 
 private:
     void startCamera();
@@ -45,11 +38,7 @@ private:
 
 	void stopPublish();
 
-	void switchToCamera(bool pisinit);
-	void switchToOutside(bool pisinit);
-
-public:
-    YangSendVideoImpl* m_send;
+	void switchToCamera();
 
 private:
 	bool m_hasAudio;
@@ -65,7 +54,6 @@ private:
 	YangVideoInfo* m_screenInfo;
 
 	YangVideoInfo* m_outInfo;
-
 };
 
 #endif // YANGPUSH_YANGPUSHHANDLEIMPL_H_

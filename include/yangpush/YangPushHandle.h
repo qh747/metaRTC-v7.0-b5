@@ -20,10 +20,9 @@ public:
     virtual void disconnect() = 0;
 
     virtual void init() = 0;
-    virtual void changeSrc(int videoSrcType, bool pisinit) = 0;
+    virtual void changeSrc(int videoType) = 0;
 
     virtual YangVideoBuffer* getPreVideoBuffer() = 0;
-    virtual YangSendVideoI* getSendVideo() = 0;
 };
 
 #endif // INCLUDE_YANGPUSH_YANGPUSHHANDLE_H_
