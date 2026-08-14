@@ -8,21 +8,18 @@
 YangPushHandleImpl::YangPushHandleImpl(
 	bool hasAudio,
 	bool initVideo,
-	int videoType,
 	YangVideoInfo* screenVideo,
 	YangVideoInfo* outVideo,
 	YangContext* context,
 	YangSysMessageI* message) {
 
 	m_rtcPub = NULL;
-	m_videoType = videoType;
 	m_screenInfo = screenVideo;
 	m_outInfo = outVideo;
 	m_context = context;
 	m_message = message;
 
 	m_cap = new YangPushPublish(m_context);
-	m_cap->setCaptureType(m_videoType);
 
 	m_hasAudio = hasAudio;
 	m_isInit = initVideo;
@@ -48,7 +45,6 @@ void YangPushHandleImpl::disconnect() {
 		}
 		
 		m_cap->stopVideoCaptureState();
-		m_cap->stopScreenCaptureState();
 	}
 
 	this->stopPublish();
@@ -59,22 +55,13 @@ void YangPushHandleImpl::init() {
 		return;
 	}
 
-	this->changeSrc(m_videoType);
+	this->changeSrc(Yang_VideoSrc_Camera);
 	m_isInit = true;
 }
 
-void YangPushHandleImpl::switchToCamera() {
-	m_videoType = Yang_VideoSrc_Camera;
-
-	m_cap->setCaptureType(m_videoType);
-	this->startCamera();
-}
-
 void YangPushHandleImpl::changeSrc(int videoType) {
-	m_videoType = videoType;
-
-	if (m_videoType == Yang_VideoSrc_Camera) {
-		this->switchToCamera();
+	if (videoType == Yang_VideoSrc_Camera) {
+		m_cap->startCamera();
 	}
 }
 
@@ -91,11 +78,7 @@ void YangPushHandleImpl::stopPublish() {
 }
 
 YangVideoBuffer* YangPushHandleImpl::getPreVideoBuffer() {
-	if (m_videoType == Yang_VideoSrc_Camera) {
-		return m_cap->getPreVideoBuffer();
-	}
-
-	return NULL;
+	return m_cap->getPreVideoBuffer();
 }
 
 int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
@@ -157,18 +140,7 @@ int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 		m_cap->startAudioCaptureState();
 	}
 		
-	if (m_videoType == Yang_VideoSrc_Camera) {
-		m_cap->startVideoCaptureState();
-	}
-
+	m_cap->startVideoCaptureState();
 	return err;
-}
-
-void YangPushHandleImpl::startCamera() {
-	m_cap->startCamera();
-}
-
-void YangPushHandleImpl::stopCamera() {
-	m_cap->stopCamera();
 }
 

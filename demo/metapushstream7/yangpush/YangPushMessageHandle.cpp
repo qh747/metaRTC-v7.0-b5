@@ -9,7 +9,6 @@
 
 YangPushMessageHandle::YangPushMessageHandle(
 	bool hasAudio,
-	int videoType,
 	YangVideoInfo* screenVideo,
 	YangVideoInfo* outVideo,
 	YangContext* context,
@@ -22,7 +21,6 @@ YangPushMessageHandle::YangPushMessageHandle(
     m_push = new YangPushHandleImpl(
 		hasAudio,
 		false,
-		videoType,
 		screenVideo,
 		outVideo,
 		context,

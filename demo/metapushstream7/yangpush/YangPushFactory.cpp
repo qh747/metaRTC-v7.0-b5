@@ -6,15 +6,14 @@
 
 YangSysMessageHandle* YangPushFactory::CreatePushMessageHandle(
 	bool hasAudio,
-	int videoType, 
 	YangVideoInfo* screen, 
 	YangVideoInfo* outVideo, 
 	YangContext* context,
     YangSysMessageI* message,
 	YangSysMessageHandleI* messageHandle) {
+		
     return new YangPushMessageHandle(
 		hasAudio,
-		videoType,
 		screen,
 		outVideo,
 		context,

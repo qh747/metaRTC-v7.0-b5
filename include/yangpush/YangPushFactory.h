@@ -23,7 +23,6 @@ public:
 	 */
 	static YangSysMessageHandle* CreatePushMessageHandle(
 		bool hasAudio,
-		int videoType,
 		YangVideoInfo* screen, 
 		YangVideoInfo* outVideo,
 		YangContext* context,

@@ -26,20 +26,11 @@ public:
 
 	void stopAll();
     
-	void setCaptureType(int pct);
-	void setScreenInterval(int32_t interval);
-	void setDrawmouse(bool isDraw);
 	void setRtcNetBuffer(YangRtcPublish* prr);
-	
-    void setInAudioBuffer(std::vector<YangAudioPlayBuffer*>* pbuf);
 
-	YangPushCapture* getPushCapture();
 	YangVideoBuffer* getPreVideoBuffer();
 	YangVideoBuffer* getOutPreVideoBuffer();
 	YangVideoBuffer* getOutVideoBuffer();
-
-	void startPubVideo();
-	void startPubAudio();
 
 	void initAudioEncoding();
 	void initVideoEncoding();
@@ -57,16 +48,6 @@ public:
 
 	void stopAudioCaptureState();
 	void stopVideoCaptureState();
-	void stopScreenCaptureState();
-	
-	void change(int32_t st);
-	void sendMsgToEncoder(YangRequestType req);
-
-private:
-    void stopAudioState();
-	void stopVideoState();
-
-	void initCapture();
 	
 private:
 	YangVideoBuffer* m_outVideoBuffer;
@@ -79,14 +60,12 @@ private:
 
 	YangVideoInfo* m_videoInfo;
 
-	int32_t isStartAudioCapture;
-	int32_t isStartVideoCapture;
-	int32_t isStartScreenCapture;
+	bool isStartAudioCapture;
+	bool isStartVideoCapture;
+	bool isStartScreenCapture;
 
-	int32_t isStartAudioEncoder;
-	int32_t isStartVideoEncoder;
-	
-	int m_captureType;
+	bool isStartAudioEncoder;
+	bool isStartVideoEncoder;
 };
 
 #endif // YangPushPublish_H

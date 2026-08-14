@@ -13,7 +13,6 @@ class YangPushMessageHandle : public YangSysMessageHandle {
 public:
     YangPushMessageHandle(
 		bool hasAudio,
-		int videoType,
 		YangVideoInfo* screenVideo,
 		YangVideoInfo* outVideo,
 		YangContext* context,

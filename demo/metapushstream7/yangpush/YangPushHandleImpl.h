@@ -14,7 +14,6 @@ public:
 	YangPushHandleImpl(
 		bool hasAudio,
 		bool initVideo,
-		int videoType,
 		YangVideoInfo* screenVideo,
 		YangVideoInfo* outVideo,
 		YangContext* context,
@@ -33,16 +32,10 @@ public:
 	virtual YangVideoBuffer* getPreVideoBuffer();
 
 private:
-    void startCamera();
-    void stopCamera();
-
 	void stopPublish();
-
-	void switchToCamera();
 
 private:
 	bool m_hasAudio;
-	int m_videoType;
 	bool m_isInit;
 
 	YangPushPublish* m_cap;

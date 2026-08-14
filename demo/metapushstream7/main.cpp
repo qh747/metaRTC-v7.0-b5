@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
     RecordMainWindow win;
     YangSysMessageHandle* sys = YangPushFactory::CreatePushMessageHandle(
         win.m_hasAudio,
-        win.m_videoType,
         &win.m_screenInfo,
         &win.m_outInfo,
         win.m_context,

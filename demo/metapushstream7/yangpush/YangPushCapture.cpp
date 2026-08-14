@@ -10,47 +10,43 @@
 #include <yangcapture/YangCaptureFactory.h>
 
 
-YangPushCapture::YangPushCapture(YangContext *pcontext) {
-	m_context=pcontext;
+YangPushCapture::YangPushCapture(YangContext* context) {
+	m_context = context;
 
 	m_out_audioBuffer = NULL;
-	m_screenCapture=NULL;
-	m_videoCapture=NULL;
-	m_audioCapture=NULL;
+	m_out_videoBuffer = NULL;
 
+	m_videoCapture = NULL;
+	m_audioCapture = NULL;
+	
+	m_screen_pre_videoBuffer = NULL;
+	m_screen_out_videoBuffer = NULL;
 
-	m_out_videoBuffer=NULL;
-	m_screen_pre_videoBuffer=NULL;
-	m_screen_out_videoBuffer=NULL;
-	m_pre_videoBuffer=new YangVideoBuffer(pcontext->avinfo.video.bitDepth==8?1:2);
-	m_pre_videoBuffer->isPreview=1;
-
-	m_isConvert=0;
-	m_isStart=0;
-
+	m_pre_videoBuffer = new YangVideoBuffer(context->avinfo.video.bitDepth == 8 ? 1 : 2);
+	m_pre_videoBuffer->isPreview = 1;
+    
+	m_isStart = 0;
+	m_isConvert = 0;
 }
 
 YangPushCapture::~YangPushCapture() {
-	m_context=NULL;
-	stopAll();
+	m_context = NULL;
+
+	this->stopAll();
 	yang_stop_thread(this);
+
 	yang_stop_thread(m_audioCapture);
 	yang_stop_thread(m_videoCapture);
-	yang_stop_thread(m_screenCapture);
-
 
 	yang_delete(m_audioCapture);
 	yang_delete(m_videoCapture);
-	yang_delete(m_screenCapture);
 
 	yang_delete(m_out_audioBuffer);
 	yang_delete(m_pre_videoBuffer);
 	yang_delete(m_out_videoBuffer);
 
-	m_screen_pre_videoBuffer=NULL;
-	m_screen_out_videoBuffer=NULL;
-
-
+	m_screen_pre_videoBuffer = NULL;
+	m_screen_out_videoBuffer = NULL;
 }
 
 
@@ -69,10 +65,17 @@ void YangPushCapture::setInAudioBuffer(vector<YangAudioPlayBuffer*> *pbuf){
 	if(m_audioCapture!=NULL) m_audioCapture->setInAudioBuffer(pbuf);
 }
 void YangPushCapture::startAudioCapture() {
-
-	if (m_audioCapture && !m_audioCapture->m_isStart)
+	if (m_audioCapture && !m_audioCapture->m_isStart) {
 		m_audioCapture->start();
+	}
 }
+
+void YangPushCapture::startVideoCapture() {
+	if (m_videoCapture && !m_videoCapture->m_isStart) {
+		m_videoCapture->start();
+	}
+}
+
 YangAudioBuffer* YangPushCapture::getOutAudioBuffer() {
 	return m_out_audioBuffer;
 }
@@ -110,7 +113,6 @@ void YangPushCapture::stopAll(){
 	stop();
 	yang_stop(m_audioCapture);
 	yang_stop(m_videoCapture);
-	yang_stop(m_screenCapture);
 
 }
 
@@ -120,22 +122,10 @@ void YangPushCapture::startVideoCaptureState() {
 	m_videoCapture->setVideoCaptureStart();
 }
 
-void YangPushCapture::startScreenCaptureState() {
-
-	m_screenCapture->setVideoCaptureStart();
-}
-
 void YangPushCapture::stopVideoCaptureState() {
 	if(m_videoCapture) m_videoCapture->setVideoCaptureStop();
 
 }
-void YangPushCapture::stopScreenCaptureState(){
-	if(m_screenCapture) m_screenCapture->setVideoCaptureStop();
-}
-void YangPushCapture::change(int32_t st) {
-
-}
-
 
 int32_t YangPushCapture::initVideo(){
 	if(m_out_videoBuffer==NULL) m_out_videoBuffer = new YangVideoBuffer(m_context->avinfo.video.bitDepth==8?1:2);
@@ -163,12 +153,6 @@ int32_t YangPushCapture::initVideo(){
 
 }
 
-void YangPushCapture::startVideoCapture(){
-		if(m_videoCapture&&!m_videoCapture->m_isStart) m_videoCapture->start();
-}
-void YangPushCapture::startScreenCapture(){
-	if(m_screenCapture&&!m_screenCapture->m_isStart) m_screenCapture->start();
-}
 YangVideoBuffer * YangPushCapture::getOutVideoBuffer(){
 
 	return m_out_videoBuffer;
@@ -178,15 +162,8 @@ YangVideoBuffer * YangPushCapture::getPreVideoBuffer(){
 
 	return m_pre_videoBuffer;
 }
-void YangPushCapture::run() {
-	m_isStart = 1;
-	startLoop();
-	m_isStart = 0;
-}
+
 void YangPushCapture::stop() {
-	stopLoop();
-}
-void YangPushCapture::stopLoop() {
 	m_isConvert = 0;
 }
 
@@ -209,13 +186,4 @@ void YangPushCapture::stopCamera() {
 	yang_stop(m_videoCapture);
 	yang_stop_thread(m_videoCapture);
 	yang_delete(m_videoCapture);
-}
-
-
-void YangPushCapture::setScreenInterval(int32_t pinterval) {
-	if(m_screenCapture) m_screenCapture->setInterval(pinterval);
-}
-
-void YangPushCapture::setDrawmouse(bool isDraw) {
-	if(m_screenCapture) m_screenCapture->setDrawmouse(isDraw);
 }

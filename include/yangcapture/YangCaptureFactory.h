@@ -6,20 +6,19 @@
 #define INCLUDE_YANGCAPTURE_YANGCAPTUREFACTORY_H_
 #include <yangcapture/YangMultiVideoCapture.h>
 #include <yangaudiodev/YangAudioCapture.h>
-#include "YangScreenCapture.h"
-
 
 class YangCaptureFactory {
 public:
 	YangCaptureFactory();
 	virtual ~YangCaptureFactory();
-	YangAudioCapture *createAudioCapture(YangContext *pcontext);
-	YangAudioCapture *createRecordAudioCapture(YangAVInfo *avinfo);
-	YangMultiVideoCapture *createVideoCapture(YangVideoInfo *pcontext);
-    YangMultiVideoCapture *createRecordVideoCapture(YangVideoInfo *pcontext);
-    YangMultiVideoCapture *createRecordVideoCaptureAndroid(YangVideoInfo *pcontext,void* pwindow);
 
-
+public:
+	YangAudioCapture* createAudioCapture(YangContext* context);
+	YangAudioCapture* createRecordAudioCapture(YangAVInfo* avinfo);
+	
+	YangMultiVideoCapture* createVideoCapture(YangVideoInfo* context);
+    YangMultiVideoCapture* createRecordVideoCapture(YangVideoInfo* context);
+    YangMultiVideoCapture* createRecordVideoCaptureAndroid(YangVideoInfo* context, void* window);
 };
 
-#endif /* INCLUDE_YANGCAPTURE_YANGCAPTUREFACTORY_H_ */
+#endif // INCLUDE_YANGCAPTURE_YANGCAPTUREFACTORY_H_ */
