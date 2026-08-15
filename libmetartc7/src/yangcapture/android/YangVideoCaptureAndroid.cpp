@@ -12,14 +12,14 @@ YangVideoCaptureAndroid::YangVideoCaptureAndroid(YangVideoInfo *pcontext,void* p
 	m_para = pcontext;
 	m_vhandle = new YangVideoCaptureHandle(pcontext);
 
-	cameraIndex = pcontext->vIndex;
+	m_camIdx = pcontext->vIndex;
 	m_width = m_para->width;
 	m_height = m_para->height;
 	m_isloop = 0;
 
 	m_pre_videoBuffer=NULL;
 
-	m_camera=new YangCameraAndroid((ANativeWindow*)pwindow,(YangCameraType)cameraIndex);
+	m_camera=new YangCameraAndroid((ANativeWindow*)pwindow, (YangCameraType)m_camIdx);
 	m_camera->setSize(m_width, m_height);
 	m_camera->setUser(m_vhandle);
 }
@@ -41,39 +41,11 @@ void YangVideoCaptureAndroid::setVideoCaptureStart() {
 void YangVideoCaptureAndroid::setVideoCaptureStop() {
 	m_vhandle->m_isCapture = 0;
 }
-int32_t YangVideoCaptureAndroid::getVideoCaptureState() {
-	return m_vhandle->m_isCapture;
-}
-int32_t YangVideoCaptureAndroid::getLivingVideoCaptureState() {
-	return m_vhandle->m_isLivingCaptrue;
-}
-int32_t YangVideoCaptureAndroid::getFilmVideoCaptureState() {
-	return m_vhandle->m_isFilm;
-}
-
-void YangVideoCaptureAndroid::setLivingVideoCaptureStart() {
-	m_vhandle->m_isLivingCaptrue = 1;
-}
-void YangVideoCaptureAndroid::setLivingVideoCaptureStop() {
-	m_vhandle->m_isLivingCaptrue = 0;
-}
-
-void YangVideoCaptureAndroid::setFilmVideoCaptureStart() {
-	m_vhandle->m_isFilm = 1;
-}
-void YangVideoCaptureAndroid::setFilmVideoCaptureStop() {
-	m_vhandle->m_isFilm = 0;
-}
 
 void YangVideoCaptureAndroid::setOutVideoBuffer(YangVideoBuffer *pbuf) {
 	m_vhandle->setVideoBuffer(pbuf);
 }
-void YangVideoCaptureAndroid::setLivingOutVideoBuffer(YangVideoBuffer *pbuf) {
-	m_vhandle->setLivingVideoBuffer(pbuf);
-}
-void YangVideoCaptureAndroid::setFilmOutVideoBuffer(YangVideoBuffer *pbuf) {
-	m_vhandle->setFilmVideoBuffer(pbuf);
-}
+
 void YangVideoCaptureAndroid::setPreVideoBuffer(YangVideoBuffer *pbuf) {
 	m_pre_videoBuffer=pbuf;
 	m_vhandle->setPreVideoBuffer(pbuf);

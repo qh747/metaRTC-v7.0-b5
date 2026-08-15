@@ -25,16 +25,12 @@ public:
 	void startLoop();
 	long m_start_time;
 	int32_t m_isCapture;
-	int32_t m_isLivingCaptrue;
-	int32_t m_isFilm;
 	void  setVideoBuffer(YangVideoBuffer *pbuf);
-	void  setLivingVideoBuffer(YangVideoBuffer *pbuf);
-	void  setFilmVideoBuffer(YangVideoBuffer *pbuf);
 	void  setPreVideoBuffer(YangVideoBuffer *plist);
 	void  setCaptureFormat(int32_t pformat);
 private:
 
-	YangVideoBuffer *m_out_videoBuffer,*m_pre_videoBuffer,*m_living_out_videoBuffer,*m_film_out_videoBuffer;
+	YangVideoBuffer *m_out_videoBuffer,*m_pre_videoBuffer;
 	YangFrame m_videoFrame;
 	YangYuvConvert m_yuv;
 	uint8_t *m_buf,*m_androidBuf;

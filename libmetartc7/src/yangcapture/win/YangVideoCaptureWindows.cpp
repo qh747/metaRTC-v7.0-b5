@@ -53,7 +53,7 @@ YangVideoCaptureWindows::YangVideoCaptureWindows(YangVideoInfo *pcontext) {
 	m_para = pcontext;
 
     m_vhandle = new YangWinVideoCaptureHandle(pcontext);
-	cameraIndex = pcontext->vIndex;
+	m_camIdx = pcontext->vIndex;
 	m_width = m_para->width;
 	m_height = m_para->height;
 	m_vd_id = 0;
@@ -74,7 +74,7 @@ YangVideoCaptureWindows::YangVideoCaptureWindows(YangVideoInfo *pcontext) {
 	m_t_time=0;
 
 
-	cameraIndex = 1;
+	m_camIdx = 1;
 	hasVideo = 1;
 	m_preframe = 12;
 
@@ -116,45 +116,17 @@ YangVideoCaptureWindows::~YangVideoCaptureWindows() {
 
 }
 
-int32_t YangVideoCaptureWindows::getVideoCaptureState() {
-    return m_vhandle->m_isCapture;
-}
-int32_t YangVideoCaptureWindows::getLivingVideoCaptureState() {
-    return m_vhandle->m_isLivingCaptrue;
-}
-int32_t YangVideoCaptureWindows::getFilmVideoCaptureState() {
-    return m_vhandle->m_isFilm;
-}
-
 void YangVideoCaptureWindows::setVideoCaptureStart() {
     m_vhandle->m_isCapture = 1;
 }
 void YangVideoCaptureWindows::setVideoCaptureStop() {
     m_vhandle->m_isCapture = 0;
 }
-void YangVideoCaptureWindows::setLivingVideoCaptureStart() {
-    m_vhandle->m_isLivingCaptrue = 1;
-}
-void YangVideoCaptureWindows::setLivingVideoCaptureStop() {
-    m_vhandle->m_isLivingCaptrue = 0;
-}
-
-void YangVideoCaptureWindows::setFilmVideoCaptureStart() {
-    m_vhandle->m_isFilm = 1;
-}
-void YangVideoCaptureWindows::setFilmVideoCaptureStop() {
-    m_vhandle->m_isFilm = 0;
-}
 
 void YangVideoCaptureWindows::setOutVideoBuffer(YangVideoBuffer *pbuf) {
 	m_vhandle->setVideoBuffer(pbuf);
 }
-void YangVideoCaptureWindows::setLivingOutVideoBuffer(YangVideoBuffer *pbuf) {
-	m_vhandle->setLivingVideoBuffer(pbuf);
-}
-void YangVideoCaptureWindows::setFilmOutVideoBuffer(YangVideoBuffer *pbuf) {
-	m_vhandle->setFilmVideoBuffer(pbuf);
-}
+
 void YangVideoCaptureWindows::setPreVideoBuffer(YangVideoBuffer *pbuf) {
 	m_vhandle->setPreVideoBuffer(pbuf);
 }
@@ -177,7 +149,7 @@ int32_t YangVideoCaptureWindows::init() {
 	devEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &classEnum,0);
 	while (classEnum->Next(1, &moniker, &cFetched) == S_OK) {
 		cco++;
-		if (cco != cameraIndex)
+		if (cco != m_camIdx)
 			continue;
 		moniker->BindToObject(0, 0, IID_IBaseFilter, (void**) &m_videoSrc);
 		yang_release(moniker);
@@ -218,10 +190,6 @@ int32_t YangVideoCaptureWindows::init() {
 					}else if(m_yuy2.state>1){
 						m_para->videoCaptureFormat=YangYuy2;
 					}
-					#if Yang10bit
-					if(m_para->videoCaptureFormat==YangP010) format=V4L2_PIX_FMT_P010;
-					if(m_para->videoCaptureFormat==YangP016) format=V4L2_PIX_FMT_P016;
-					#endif
 
 				}else if(m_i420.state||m_nv12.state||m_yv12.state||m_yuy2.state){
 					if(m_i420.state) {
@@ -341,7 +309,7 @@ void YangVideoCaptureWindows::setRevolution() {
 						pvih->bmiHeader.biSizeImage = pvih->bmiHeader.biWidth
 								* pvih->bmiHeader.biHeight
 								* pvih->bmiHeader.biBitCount / 8;
-                        yang_info("\nset %d Camera Revolution Sucess!width=%d,height=%d..\n",cameraIndex,m_para->width,m_para->height);
+                        yang_info("\nset %d Camera Revolution Sucess!width=%d,height=%d..\n",m_camIdx,m_para->width,m_para->height);
 						config1->SetFormat(&amt);
 						pvih = NULL;
 

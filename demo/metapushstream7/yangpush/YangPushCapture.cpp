@@ -2,13 +2,11 @@
 // Copyright (c) 2019-2022 yanggaofeng
 //
 
+#include <yang_config_os.h>
 #include <yangpush/YangPushCapture.h>
-
 #include <yangavutil/video/YangYuvConvert.h>
 #include <yangavutil/video/YangYuvUtil.h>
-
 #include <yangcapture/YangCaptureFactory.h>
-
 
 YangPushCapture::YangPushCapture(YangContext* context) {
 	m_context = context;
@@ -49,21 +47,30 @@ YangPushCapture::~YangPushCapture() {
 	m_screen_out_videoBuffer = NULL;
 }
 
-
 void YangPushCapture::startAudioCaptureState() {
-    if(m_audioCapture) m_audioCapture->setCatureStart();
-}
-void YangPushCapture::stopAudioCaptureState() {
-    if(m_audioCapture) m_audioCapture->setCatureStop();
-}
-void YangPushCapture::setAec(YangRtcAec *paec) {
-	if (m_audioCapture) {
-		m_audioCapture->setAec(paec);
+    if (m_audioCapture) {
+		m_audioCapture->setCatureStart();
 	}
 }
-void YangPushCapture::setInAudioBuffer(vector<YangAudioPlayBuffer*> *pbuf){
-	if(m_audioCapture!=NULL) m_audioCapture->setInAudioBuffer(pbuf);
+
+void YangPushCapture::stopAudioCaptureState() {
+    if (m_audioCapture) {
+		m_audioCapture->setCatureStop();
+	}
 }
+
+void YangPushCapture::setAec(YangRtcAec* aec) {
+	if (m_audioCapture) {
+		m_audioCapture->setAec(aec);
+	}
+}
+
+void YangPushCapture::setInAudioBuffer(std::vector<YangAudioPlayBuffer*>* pbuf) {
+	if (m_audioCapture) {
+		m_audioCapture->setInAudioBuffer(pbuf);
+	}
+}
+
 void YangPushCapture::startAudioCapture() {
 	if (m_audioCapture && !m_audioCapture->m_isStart) {
 		m_audioCapture->start();
@@ -76,111 +83,101 @@ void YangPushCapture::startVideoCapture() {
 	}
 }
 
-YangAudioBuffer* YangPushCapture::getOutAudioBuffer() {
-	return m_out_audioBuffer;
-}
-int32_t YangPushCapture::initAudio(YangPreProcess *pp) {
+int32_t YangPushCapture::initAudio(YangPreProcess* preProc) {
 	if (m_out_audioBuffer == NULL) {
-		if (m_context->avinfo.audio.enableMono)
-			m_out_audioBuffer = new YangAudioBuffer(m_context->avinfo.audio.audioCacheNum);
-		else
-			m_out_audioBuffer = new YangAudioBuffer(m_context->avinfo.audio.audioCacheNum);
+		m_out_audioBuffer = new YangAudioBuffer(m_context->avinfo.audio.audioCacheNum);
 	}
-	if (m_audioCapture == NULL) {
-		YangCaptureFactory m_capture;
-		m_audioCapture = m_capture.createRecordAudioCapture(&m_context->avinfo); //new YangAudioCapture(m_context);
-		int32_t ret=m_audioCapture->init();
-		if(ret){
-			if(ret==ERROR_SYS_NoAudioDevice||ret==ERROR_SYS_NoAudioCaptureDevice) {
-				yang_error("ERROR_SYS_NoAudioDevice");
-					return ret;
-			}
 
+	if (m_audioCapture == NULL) {
+		m_audioCapture = YangCaptureFactory::CreateAudioCapture(&m_context->avinfo);
+        
+		int32_t ret = m_audioCapture->init();
+
+		if (ret == ERROR_SYS_NoAudioDevice || ret == ERROR_SYS_NoAudioCaptureDevice) {
+			return yang_error_wrap(ret, "audio capture init fail!");
 		}
-		m_audioCapture->setPreProcess(pp);
+
+		m_audioCapture->setPreProcess(preProc);
 		m_audioCapture->setOutAudioBuffer(m_out_audioBuffer);
 
 		m_audioCapture->setCatureStop();
 	}
-	stopAudioCaptureState();
+
+	this->stopAudioCaptureState();
 	return Yang_Ok;
 }
 
+int32_t YangPushCapture::initVideo() {
+	if (m_out_videoBuffer == NULL) {
+		m_out_videoBuffer = new YangVideoBuffer(
+			m_context->avinfo.video.bitDepth == 8 ? 1 : 2
+		);
+	}
 
+	if (m_videoCapture == NULL) {
+#if Yang_OS_ANDROID
+		m_videoCapture = YangCaptureFactory::CreateAndroidCapture(
+			&m_context->avinfo.video,
+			m_context->nativeWindow
+		);
+#else
+		m_videoCapture = YangCaptureFactory::CreateVideoCapture(&m_context->avinfo.video);
+#endif
+        
+        int32_t err = m_videoCapture->init();
 
+		if(err != Yang_Ok){
+			return yang_error_wrap(err, "video capture init fail!");
+		}
 
-void YangPushCapture::stopAll(){
-	stop();
-	yang_stop(m_audioCapture);
-	yang_stop(m_videoCapture);
+		m_out_videoBuffer->init(
+			m_context->avinfo.video.width,
+			m_context->avinfo.video.height,
+			m_context->avinfo.video.videoEncoderFormat
+		);
 
+		m_pre_videoBuffer->init(
+			m_context->avinfo.video.width,
+			m_context->avinfo.video.height,
+			m_context->avinfo.video.videoEncoderFormat
+		);
+		
+		m_videoCapture->setOutVideoBuffer(m_out_videoBuffer);
+		m_videoCapture->setPreVideoBuffer(m_pre_videoBuffer);
+	}
+
+	this->stopVideoCaptureState();
+	return Yang_Ok;
 }
 
+void YangPushCapture::stopAll() {
+	this->stop();
+
+	yang_stop(m_audioCapture);
+	yang_stop(m_videoCapture);
+}
 
 void YangPushCapture::startVideoCaptureState() {
-	m_videoCapture->initstamp();
-	m_videoCapture->setVideoCaptureStart();
+	if (m_videoCapture) {
+		m_videoCapture->initstamp();
+	    m_videoCapture->setVideoCaptureStart();
+	}
 }
 
 void YangPushCapture::stopVideoCaptureState() {
-	if(m_videoCapture) m_videoCapture->setVideoCaptureStop();
-
-}
-
-int32_t YangPushCapture::initVideo(){
-	if(m_out_videoBuffer==NULL) m_out_videoBuffer = new YangVideoBuffer(m_context->avinfo.video.bitDepth==8?1:2);
-	int32_t err=Yang_Ok;
-	if (m_videoCapture == NULL) {
-		YangCaptureFactory cf;
-#ifdef __ANDROID__
-		m_videoCapture = cf.createRecordVideoCaptureAndroid(&m_context->avinfo.video,m_context->nativeWindow);
-#else
-		m_videoCapture = cf.createRecordVideoCapture(&m_context->avinfo.video);//new YangVideoCapture(m_context);
-#endif
-
-		if((err=m_videoCapture->init())!=Yang_Ok){
-			return yang_error_wrap(err,"video capture init fail!");
-		}
-
-		m_out_videoBuffer->init(m_context->avinfo.video.width,m_context->avinfo.video.height,m_context->avinfo.video.videoEncoderFormat);
-		m_pre_videoBuffer->init(m_context->avinfo.video.width,m_context->avinfo.video.height,m_context->avinfo.video.videoEncoderFormat);
-		m_videoCapture->setOutVideoBuffer(m_out_videoBuffer);
-		m_videoCapture->setPreVideoBuffer(m_pre_videoBuffer);
-		//m_videoCapture->setVideoCaptureStart();
+	if (m_videoCapture) {
+		m_videoCapture->setVideoCaptureStop();
 	}
-	stopVideoCaptureState();
-	return err;
-
-}
-
-YangVideoBuffer * YangPushCapture::getOutVideoBuffer(){
-
-	return m_out_videoBuffer;
-}
-
-YangVideoBuffer * YangPushCapture::getPreVideoBuffer(){
-
-	return m_pre_videoBuffer;
 }
 
 void YangPushCapture::stop() {
 	m_isConvert = 0;
 }
 
-YangVideoBuffer* YangPushCapture::getScreenOutVideoBuffer() {
-	return m_screen_out_videoBuffer;
-}
-
-YangVideoBuffer* YangPushCapture::getScreenPreVideoBuffer() {
-	return m_screen_pre_videoBuffer;
-}
-
 void YangPushCapture::startCamera() {
-	initVideo();
-	startVideoCapture();
+	this->initVideo();
+	this->startVideoCapture();
 }
-
-
 
 void YangPushCapture::stopCamera() {
 	yang_stop(m_videoCapture);

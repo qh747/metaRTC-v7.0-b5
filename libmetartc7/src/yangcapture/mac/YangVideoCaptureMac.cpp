@@ -17,7 +17,7 @@ YangVideoCaptureMac::YangVideoCaptureMac(YangVideoInfo *pcontext) {
 	m_para = pcontext;
 
 	m_vhandle = new YangVideoCaptureHandle(pcontext);
-	cameraIndex = pcontext->vIndex;
+	m_camIdx = pcontext->vIndex;
 	m_width = m_para->width;
 	m_height = m_para->height;
 
@@ -58,39 +58,11 @@ void YangVideoCaptureMac::setVideoCaptureStart() {
 void YangVideoCaptureMac::setVideoCaptureStop() {
 	m_vhandle->m_isCapture = 0;
 }
-int32_t YangVideoCaptureMac::getVideoCaptureState() {
-	return m_vhandle->m_isCapture;
-}
-int32_t YangVideoCaptureMac::getLivingVideoCaptureState() {
-	return m_vhandle->m_isLivingCaptrue;
-}
-int32_t YangVideoCaptureMac::getFilmVideoCaptureState() {
-	return m_vhandle->m_isFilm;
-}
-
-void YangVideoCaptureMac::setLivingVideoCaptureStart() {
-	m_vhandle->m_isLivingCaptrue = 1;
-}
-void YangVideoCaptureMac::setLivingVideoCaptureStop() {
-	m_vhandle->m_isLivingCaptrue = 0;
-}
-
-void YangVideoCaptureMac::setFilmVideoCaptureStart() {
-	m_vhandle->m_isFilm = 1;
-}
-void YangVideoCaptureMac::setFilmVideoCaptureStop() {
-	m_vhandle->m_isFilm = 0;
-}
 
 void YangVideoCaptureMac::setOutVideoBuffer(YangVideoBuffer *pbuf) {
 	m_vhandle->setVideoBuffer(pbuf);
 }
-void YangVideoCaptureMac::setLivingOutVideoBuffer(YangVideoBuffer *pbuf) {
-	m_vhandle->setLivingVideoBuffer(pbuf);
-}
-void YangVideoCaptureMac::setFilmOutVideoBuffer(YangVideoBuffer *pbuf) {
-	m_vhandle->setFilmVideoBuffer(pbuf);
-}
+
 void YangVideoCaptureMac::setPreVideoBuffer(YangVideoBuffer *pbuf) {
 	m_vhandle->setPreVideoBuffer(pbuf);
 }

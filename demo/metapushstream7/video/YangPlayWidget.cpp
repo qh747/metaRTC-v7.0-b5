@@ -167,8 +167,8 @@ void YangPlayWidget::initializeGL()
     id_u = m_pTextureU->textureId();
     //获取返回v分量的纹理索引值
     id_v = m_pTextureV->textureId();
-    glClearColor(0.3,0.3,0.3,0.0);//设置背景色
-    //qDebug("addr=%x id_y = %d id_u=%d id_v=%d\n", this, id_y, id_u, id_v);
+    //设置背景色
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
 void YangPlayWidget::resizeGL(int32_t w, int32_t h)
@@ -183,6 +183,13 @@ void YangPlayWidget::resizeGL(int32_t w, int32_t h)
 
 void YangPlayWidget::paintGL()
 {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (m_pBufYuv420p == NULL || m_nVideoW == 0 || m_nVideoH == 0) {
+        return;
+    }
+
     //加载y数据纹理
      //激活纹理单元GL_TEXTURE0
     glActiveTexture(GL_TEXTURE0);

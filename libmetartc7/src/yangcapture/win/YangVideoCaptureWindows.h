@@ -7,7 +7,7 @@
 #include <yangutil/yangtype.h>
 #if Yang_OS_WIN
 #include <yangcapture/win/YangWinVideoCaptureHandle.h>
-#include <yangcapture/YangMultiVideoCapture.h>
+#include <yangcapture/YangVideoCapture.h>
 #include <windows.h>
 #include <control.h>
 
@@ -25,7 +25,7 @@ struct YangVideoCaptureType{
 	int32_t width;
 	int32_t height;
 };
-class YangVideoCaptureWindows: public YangMultiVideoCapture {
+class YangVideoCaptureWindows: public YangVideoCapture {
 public:
     YangVideoCaptureWindows(YangVideoInfo *pcontext);
 	virtual ~YangVideoCaptureWindows();
@@ -33,17 +33,6 @@ public:
 	int32_t init();
 	void setVideoCaptureStart();
 	void setVideoCaptureStop();
-	int32_t getVideoCaptureState();
-	int32_t getLivingVideoCaptureState();
-	int32_t getFilmVideoCaptureState();
-
-	void setLivingOutVideoBuffer(YangVideoBuffer *pbuf);
-	void setLivingVideoCaptureStart();
-	void setLivingVideoCaptureStop();
-
-	void setFilmOutVideoBuffer(YangVideoBuffer *pbuf);
-	void setFilmVideoCaptureStart();
-	void setFilmVideoCaptureStop();
 
 	void setOutVideoBuffer(YangVideoBuffer *pbuf);
 	void setPreVideoBuffer(YangVideoBuffer *pbuf);
@@ -75,7 +64,6 @@ private:
 	YangVideoCaptureType m_yuy2, m_i420 , m_nv12, m_yv12, m_p010,m_p016;
 	int32_t m_width, m_height;
 	int32_t m_vd_id;
-	int32_t cameraIndex;
 	int32_t hasVideo;
 	int32_t m_preframe, m_isOpAddMinus;
 	ULONG m_t_time;

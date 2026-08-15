@@ -5,13 +5,14 @@
 #ifndef YANGAPP_YangPushCapture_H_
 #define YANGAPP_YangPushCapture_H_
 #include <yangutil/yangtype.h>
-#include <yangaudiodev/YangAudioCapture.h>
 #include <yangutil/sys/YangThread2.h>
-#include <yangcapture/YangMultiVideoCapture.h>
+#include <yangaudiodev/YangAudioCapture.h>
+#include <yangcapture/YangVideoCapture.h>
 #include <yangutil/buffer/YangAudioBuffer.h>
 #include <yangutil/buffer/YangVideoBuffer.h>
 #include <yangavutil/audio/YangRtcAec.h>
 #include <yangutil/buffer/YangAudioPlayBuffer.h>
+
 class YangPushCapture : public YangThread {
 public:
 	YangPushCapture(YangContext* context);
@@ -25,7 +26,7 @@ protected:
 
 public:
     int32_t initVideo();
-	int32_t initAudio(YangPreProcess* proc = NULL);
+	int32_t initAudio(YangPreProcess* preProc = NULL);
 
     void startCamera();
     void stopCamera();
@@ -39,21 +40,21 @@ public:
 	void stopAudioCaptureState();
 	void stopVideoCaptureState();
 
-	void setAec(YangRtcAec *paec);
+	void setAec(YangRtcAec* aec);
 	void setInAudioBuffer(vector<YangAudioPlayBuffer*> *pbuf);
     
-	YangAudioBuffer* getOutAudioBuffer();
-	YangVideoBuffer* getOutVideoBuffer();
-	YangVideoBuffer* getPreVideoBuffer();
+	inline YangAudioBuffer* getOutAudioBuffer() { return m_out_audioBuffer; }
+	inline YangVideoBuffer* getOutVideoBuffer() { return m_out_videoBuffer; }
+	inline YangVideoBuffer* getPreVideoBuffer() { return m_pre_videoBuffer; }
 
-	YangVideoBuffer* getScreenOutVideoBuffer();
-	YangVideoBuffer* getScreenPreVideoBuffer();
+	inline YangVideoBuffer* getScreenOutVideoBuffer() { return m_screen_out_videoBuffer; }
+	inline YangVideoBuffer* getScreenPreVideoBuffer() { return m_screen_pre_videoBuffer; }
 
 	void stopAll();
 
 private:
 	YangAudioCapture* m_audioCapture;
-	YangMultiVideoCapture* m_videoCapture;
+	YangVideoCapture* m_videoCapture;
 
 	YangVideoBuffer* m_out_videoBuffer;
 	YangVideoBuffer* m_pre_videoBuffer;

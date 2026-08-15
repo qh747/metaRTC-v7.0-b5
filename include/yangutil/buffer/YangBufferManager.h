@@ -5,15 +5,7 @@
 #ifndef INCLUDE_YANGUTIL_BUFFER_YANGBUFFERMANAGER_H_
 #define INCLUDE_YANGUTIL_BUFFER_YANGBUFFERMANAGER_H_
 #include <yangutil/yangtype.h>
-
-
-#ifdef __cplusplus
-extern "C"{
 #include <yangutil/yangframebuffer.h>
-}
-#else
-#include <yangutil/yangframebuffer.h>
-#endif
 
 #ifdef __cplusplus
 class YangBufferManager{

@@ -13,15 +13,11 @@ YangVideoCaptureHandle::YangVideoCaptureHandle(YangVideoInfo *pcontext) {
 	curstamp = 0;
 	basesatmp = 0;
 	m_isCapture = 0;
-	m_isLivingCaptrue=0;
-	m_isFilm=0;
 	vtick=0;
 
 	m_start_time = 0;
 	m_out_videoBuffer = NULL;
 	m_pre_videoBuffer=NULL;
-	m_living_out_videoBuffer=NULL;
-	m_film_out_videoBuffer=NULL;
 	m_width=pcontext->width;
 	m_height=pcontext->height;
 	m_ylen=m_width*m_height;
@@ -40,8 +36,6 @@ YangVideoCaptureHandle::YangVideoCaptureHandle(YangVideoInfo *pcontext) {
 YangVideoCaptureHandle::~YangVideoCaptureHandle(void) {
 	m_out_videoBuffer=NULL;
 	m_pre_videoBuffer=NULL;
-	m_living_out_videoBuffer=NULL;
-	m_film_out_videoBuffer=NULL;
 	yang_deleteA(m_buf);
 	yang_deleteA(m_androidBuf);
 
@@ -58,12 +52,7 @@ void  YangVideoCaptureHandle::setVideoBuffer(YangVideoBuffer *pbuf){
 void  YangVideoCaptureHandle::setPreVideoBuffer(YangVideoBuffer *pbuf){
 	 m_pre_videoBuffer=pbuf;
 }
-void  YangVideoCaptureHandle::setLivingVideoBuffer(YangVideoBuffer *pbuf){
-	m_living_out_videoBuffer=pbuf;
-}
-void  YangVideoCaptureHandle::setFilmVideoBuffer(YangVideoBuffer *pbuf){
-	m_film_out_videoBuffer=pbuf;
-}
+
 void YangVideoCaptureHandle::initstamp() {
 	basesatmp = curstamp;	//-m_adjust_time*10000;
 }
@@ -162,13 +151,10 @@ void YangVideoCaptureHandle::putBuffer(int64_t pstamtime,	uint8_t *pBuffer, int3
 void YangVideoCaptureHandle::putBuffers() {
 
 	if(m_pre_videoBuffer) m_pre_videoBuffer->putVideo(&m_videoFrame);
-	if(m_isFilm&&m_film_out_videoBuffer) m_film_out_videoBuffer->putVideo(&m_videoFrame);
+	
 	if (m_isCapture&&m_out_videoBuffer) {
 		m_out_videoBuffer->putVideo(&m_videoFrame);
 
-	}
-	if (m_isLivingCaptrue&&m_living_out_videoBuffer){
-		m_living_out_videoBuffer->putVideo(&m_videoFrame);
 	}
 
 

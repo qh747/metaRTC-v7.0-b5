@@ -6,12 +6,12 @@
 #define YANGCAPTURE_SRC_YangVideoCaptureMac_H_
 
 #include <yangcapture/YangVideoCaptureHandle.h>
-#include <yangcapture/YangMultiVideoCapture.h>
+#include <yangcapture/YangVideoCapture.h>
 
 #if Yang_OS_APPLE
 #include <yangcapture/mac/YangVideoDeviceMac.h>
 
-class YangVideoCaptureMac: public YangMultiVideoCapture {
+class YangVideoCaptureMac: public YangVideoCapture {
 public:
 	YangVideoCaptureMac(YangVideoInfo *pcontext);
 	~YangVideoCaptureMac();
@@ -21,20 +21,9 @@ public:
 	void setVideoCaptureStop();
 	void setOutVideoBuffer(YangVideoBuffer *pbuf);
 	void setPreVideoBuffer(YangVideoBuffer *pbuf);
-	int32_t getVideoCaptureState();
 	void initstamp();
 	void stopLoop();
 
-	int32_t getLivingVideoCaptureState();
-	int32_t getFilmVideoCaptureState();
-
-	void setLivingOutVideoBuffer(YangVideoBuffer *pbuf);
-	void setLivingVideoCaptureStart();
-	void setLivingVideoCaptureStop();
-
-	void setFilmOutVideoBuffer(YangVideoBuffer *pbuf);
-	void setFilmVideoCaptureStart();
-	void setFilmVideoCaptureStop();
     void on_video(uint8_t* data,uint32_t nb,uint64_t ts);
 protected:
 	void startLoop();

@@ -6,12 +6,12 @@
 #define YANGCAPTURE_YangVideoCaptureAndroid_H_
 
 #include <yangcapture/YangVideoCaptureHandle.h>
-#include <yangcapture/YangMultiVideoCapture.h>
+#include <yangcapture/YangVideoCapture.h>
 
 #if Yang_OS_ANDROID
 #include <yangcapture/android/YangCameraAndroid.h>
 
-class YangVideoCaptureAndroid: public YangMultiVideoCapture {
+class YangVideoCaptureAndroid: public YangVideoCapture {
 public:
 	YangVideoCaptureAndroid(YangVideoInfo *pcontext,void* pwindows);
 	~YangVideoCaptureAndroid();
@@ -22,20 +22,9 @@ public:
 	void setVideoCaptureStop();
 	void setOutVideoBuffer(YangVideoBuffer *pbuf);
 	void setPreVideoBuffer(YangVideoBuffer *pbuf);
-	int32_t getVideoCaptureState();
 	void initstamp();
 	void stopLoop();
 
-	int32_t getLivingVideoCaptureState();
-	int32_t getFilmVideoCaptureState();
-
-	void setLivingOutVideoBuffer(YangVideoBuffer *pbuf);
-	void setLivingVideoCaptureStart();
-	void setLivingVideoCaptureStop();
-
-	void setFilmOutVideoBuffer(YangVideoBuffer *pbuf);
-	void setFilmVideoCaptureStart();
-	void setFilmVideoCaptureStop();
 protected:
 	void startLoop();
 	int32_t setPara();

@@ -33,8 +33,7 @@
 #define Yang_Enable_Embbed 0
 #define Yang_Enable_10bit 0
 
-
-#define Yang_Enable_Dtls 1 //default:using dtls
+#define Yang_Enable_Dtls 1
 #define Yang_Enable_TWCC 0
 
 #if Yang_OS_WIN
@@ -51,7 +50,6 @@
 #define Yang_Enable_FfmpegSo 1
 #endif
 
-
 #if __BYTE_ORDER == __BIG_ENDIAN
 #define Yang_Little_Endian 0
 #else
@@ -65,4 +63,4 @@
 #define Yang_Rtp_I_Withmeta 0
 #define Yang_CTimer_Epoll_Timeout 200
 
-#endif /* INCLUDE_YANG_CONFIG_H_ */
+#endif // INCLUDE_YANG_CONFIG_H_
