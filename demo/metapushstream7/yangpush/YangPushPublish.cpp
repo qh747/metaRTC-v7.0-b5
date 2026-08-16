@@ -98,10 +98,9 @@ void YangPushPublish::setRtcNetBuffer(YangRtcPublish* prr) {
 	yang_reindex(m_encoder->getOutAudioBuffer());
 	yang_reindex(m_encoder->getOutVideoBuffer());
 
-	m_encoder->getOutVideoBuffer()->resetIndex();
-
 	prr->setInAudioList(m_encoder->getOutAudioBuffer());
 	prr->setInVideoList(m_encoder->getOutVideoBuffer());
+	
 	prr->setInVideoMetaData(m_encoder->getOutVideoMetaData());
 }
 

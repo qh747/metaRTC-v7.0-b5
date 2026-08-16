@@ -74,23 +74,24 @@ void printCamProps(ACameraManager *cameraManager, const char *id)
 
 	 // Try to process data without blocking the callback
 	 std::thread processor([=](){
-		 uint8_t *data_y = nullptr;
-		 uint8_t *data_u = nullptr;
-		 uint8_t *data_v = nullptr;
-		 int len=0;
-		 int ylen=0;
-		 int ulen=0;
-		 AImage_getPlaneData(image, 0, &data_y, &ylen);
-		 AImage_getPlaneData(image, 1, &data_u, &ulen);
+		uint8_t *data_y = nullptr;
+		uint8_t *data_u = nullptr;
+		uint8_t *data_v = nullptr;
+		int len=0;
+		int ylen=0;
+		int ulen=0;
+		AImage_getPlaneData(image, 0, &data_y, &ylen);
+		AImage_getPlaneData(image, 1, &data_u, &ulen);
 
-		 if(ulen>ylen>>2){
-			 ch->putBufferNv21(0, data_y, data_u);
-		 }else{
-			 AImage_getPlaneData(image, 2, &data_v, &len);
-			 ch->putBufferAndroid2(0, data_y, data_u,data_v);
-		 }
+		if (ulen > ylen >> 2) {
+		    ch->putBuffer(YangNv12, data_y, data_u, nullptr);
+		}
+		else {
+		    AImage_getPlaneData(image, 2, &data_v, &len);
+			ch->putBuffer(YangI420, data_y, data_u, data_v);
+		}
 
-		 AImage_delete(image);
+		AImage_delete(image);
 	 });
 	 processor.detach();
   }

@@ -41,8 +41,6 @@ protected:
 	void stopLoop();
 	void startLoop();
 
-void saveFile(char *fileName, uint8_t *pBuffer, long BufferLen);
-
 private:
 	std::map<int,YangAudioParam*> m_paramMap;
 	vector<YangAudioPlayBuffer*> *m_out_audioBuffer;

@@ -39,7 +39,6 @@ protected:
 	void run();
 	void stopLoop();
 	void startLoop();
-	void saveFile(char *fileName, uint8_t *pBuffer, long BufferLen);
 
 private:
 	YangContext* m_context;

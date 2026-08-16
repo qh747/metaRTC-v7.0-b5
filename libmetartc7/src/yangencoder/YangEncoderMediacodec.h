@@ -32,10 +32,6 @@ private:
 	int32_t m_yuvLen;
 	int32_t m_colorSpace;
 	int32_t encode(YangFrame* pframe, YangEncoderCallback* pcallback);
-protected:
-
-
-	void saveFile(char *fileName, uint8_t *pBuffer, int32_t BufferLen);
 
 private:
 	YangSample m_sps;

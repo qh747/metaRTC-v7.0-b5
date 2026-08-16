@@ -20,19 +20,11 @@ YangVideoCaptureLinux::YangVideoCaptureLinux(YangVideoInfo* context) {
 	m_vhandle = new YangVideoCaptureHandle(context);
 	m_camIdx = context->vIndex;
 
-	m_width = m_para->width;
-	m_height = m_para->height;
-
-	m_vd_id = 0;
-
-	memset(&m_buf, 0, sizeof(m_buf));
-	m_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	m_buf.memory = V4L2_MEMORY_MMAP;
+	m_devFd = 0;
 
 	m_isloop = 0;
-	m_isFirstFrame = 0;
+	m_isFirstFrame = false;
 	m_buffer_count = 0;
-	m_timestatmp = 0;
 
 	m_fmt = YangI420;
 }
@@ -80,7 +72,7 @@ int32_t YangVideoCaptureLinux::init() {
     
 	    sprintf(devStr, "/dev/video%d", m_camIdx);
     
-	    if ((m_vd_id = open(devStr, O_RDWR)) == -1) {
+	    if ((m_devFd = open(devStr, O_RDWR)) == -1) {
 	    	yang_error("open video device Error!");
 	    	return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
@@ -99,7 +91,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    // 查询设备能力
         struct v4l2_capability cap;
          
-	    if (ioctl(m_vd_id, VIDIOC_QUERYCAP, &cap) != 0) {
+	    if (ioctl(m_devFd, VIDIOC_QUERYCAP, &cap) != 0) {
 	    	yang_error("\n VIDIOC_QUERYCAP error!");
 	    	return ERROR_SYS_Linux_NoVideoDriver;
 	    }
@@ -115,7 +107,7 @@ int32_t YangVideoCaptureLinux::init() {
 		bool isMatchFormat = false;
 		bool isMatchResolution = false;
 
-	    while ((vet = ioctl(m_vd_id, VIDIOC_ENUM_FMT, &fmt)) != -1) {
+	    while ((vet = ioctl(m_devFd, VIDIOC_ENUM_FMT, &fmt)) != -1) {
 	    	fmt.index++;
             
 			// 设置像素格式
@@ -144,7 +136,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    	frmsize.pixel_format = fmt.pixelformat;
 	    	frmsize.index = 0;
     
-	    	while (!ioctl(m_vd_id, VIDIOC_ENUM_FRAMESIZES, &frmsize)) {
+	    	while (!ioctl(m_devFd, VIDIOC_ENUM_FRAMESIZES, &frmsize)) {
 				frmsize.index++;
                   
 				// 跳过非固定分辨率
@@ -181,17 +173,14 @@ int32_t YangVideoCaptureLinux::init() {
 		if (!isMatchResolution) {
 			m_para->width = matchWeight;
 			m_para->height = matchHeight;
-
-			m_width = matchWeight;
-			m_height = matchHeight;
 		}
 
 		struct v4l2_format v4_format;
 	    memset(&v4_format, 0, sizeof(v4_format));
 	    
 	    v4_format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	    v4_format.fmt.pix.width = m_width;
-	    v4_format.fmt.pix.height = m_height;
+	    v4_format.fmt.pix.width = m_para->width;
+	    v4_format.fmt.pix.height = m_para->height;
 	    v4_format.fmt.pix.field = V4L2_FIELD_NONE;
         
         if (m_fmt == YangYuy2) {
@@ -207,7 +196,7 @@ int32_t YangVideoCaptureLinux::init() {
 	        v4_format.fmt.pix.pixelformat = V4L2_PIX_FMT_YVU420;
 	    }
     
-	    if ((ioctl(m_vd_id, VIDIOC_S_FMT, &v4_format)) != 0) {
+	    if ((ioctl(m_devFd, VIDIOC_S_FMT, &v4_format)) != 0) {
 	    	yang_error("\n set fmt error!");
 	    	return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
@@ -217,7 +206,7 @@ int32_t YangVideoCaptureLinux::init() {
 		}
 	}
     
-    // 3. 初始化视频流参数
+    // 3. 设置视频流帧率
 	{
         struct v4l2_streamparm Stream_Parm;
 	    memset(&Stream_Parm, 0, sizeof(struct v4l2_streamparm));
@@ -228,13 +217,13 @@ int32_t YangVideoCaptureLinux::init() {
 	    Stream_Parm.parm.capture.timeperframe.denominator = m_para->frame;
 	    Stream_Parm.parm.capture.timeperframe.numerator = 1;
     
-	    if (ioctl(m_vd_id, VIDIOC_S_PARM, &Stream_Parm)) {
-	    	yang_error("\n..........................set video frame error!");
+	    if (ioctl(m_devFd, VIDIOC_S_PARM, &Stream_Parm)) {
+	    	yang_error("set video frame rate error!");
 			return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
 	}
 
-	// 4. 申请视频缓冲区
+	// 4. 设置视频流缓冲区
 	{ 
         struct v4l2_requestbuffers tV4L2_reqbuf;
 	    memset(&tV4L2_reqbuf, 0, sizeof(struct v4l2_requestbuffers));
@@ -246,7 +235,7 @@ int32_t YangVideoCaptureLinux::init() {
 		// 设置缓冲区类型为内存映射
 	    tV4L2_reqbuf.memory = V4L2_MEMORY_MMAP;
     
-	    if (ioctl(m_vd_id, VIDIOC_REQBUFS, &tV4L2_reqbuf)) {
+	    if (ioctl(m_devFd, VIDIOC_REQBUFS, &tV4L2_reqbuf)) {
 			yang_error("VIDIOC_REQBUFS");
 			return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
@@ -261,7 +250,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    	tV4L2buf.memory = V4L2_MEMORY_MMAP;
 	    	tV4L2buf.index = i;
 
-	    	if (ioctl(m_vd_id, VIDIOC_QUERYBUF, &tV4L2buf)) {
+	    	if (ioctl(m_devFd, VIDIOC_QUERYBUF, &tV4L2buf)) {
                 printf("search!");
 			}
     
@@ -271,7 +260,7 @@ int32_t YangVideoCaptureLinux::init() {
                 tV4L2buf.length,
                 PROT_READ | PROT_WRITE, 
                 MAP_SHARED, 
-			    m_vd_id, 
+			    m_devFd, 
 			    tV4L2buf.m.offset
 		    );
 
@@ -285,40 +274,6 @@ int32_t YangVideoCaptureLinux::init() {
 	return Yang_Ok;
 }
 
-int32_t YangVideoCaptureLinux::readBuffer() {
-	if (ioctl(m_vd_id, VIDIOC_DQBUF, &m_buf) != 0) {
-		yang_error("VIDIOC_DQBUF");
-		exit(1);
-	}
-
-	if (m_isFirstFrame) {
-        m_timestatmp = (m_buf.timestamp.tv_sec - m_startTime.tv_sec) * 1000000 +
-		               (m_buf.timestamp.tv_usec - m_startTime.tv_usec);
-
-	} 
-	else {
-		m_isFirstFrame = 1;
-		m_startTime.tv_sec = m_buf.timestamp.tv_sec;
-		m_startTime.tv_usec = m_buf.timestamp.tv_usec;
-		m_timestatmp = 0;
-	}
-
-	if (m_vhandle) {
-		m_vhandle->putBuffer(
-			m_timestatmp, 
-			m_user_buffer[m_buf.index].start,
-			m_user_buffer[m_buf.index].length
-		);
-	}
-
-	if (ioctl(m_vd_id, VIDIOC_QBUF, &m_buf) != 0) {
-		yang_error("VIDIOC_QBUF");
-		exit(1);
-	}
-
-	return Yang_Ok;
-}
-
 void YangVideoCaptureLinux::stopLoop() {
 	m_isloop = 0;
 }
@@ -327,7 +282,7 @@ void YangVideoCaptureLinux::stopCapture() {
 	enum v4l2_buf_type type;
 
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if (-1 == ioctl(m_vd_id, VIDIOC_STREAMOFF, &type)) {
+	if (-1 == ioctl(m_devFd, VIDIOC_STREAMOFF, &type)) {
 		yang_error("Fail to ioctl 'VIDIOC_STREAMOFF'");
 		exit(EXIT_FAILURE);
 	}
@@ -342,57 +297,107 @@ void YangVideoCaptureLinux::stopCamDev() {
 		}
 	}
 
-	if (-1 == close(m_vd_id)) {
+	if (-1 == close(m_devFd)) {
 		yang_error("Fail to close fd");
 		exit(EXIT_FAILURE);
 	}
 }
 
 void YangVideoCaptureLinux::startLoop() {
-	for (int32_t i = 0; i < m_buffer_count; i++) {
+	// 将空缓冲区递交给驱动，让驱动向缓冲区中写入视频帧数据
+	for (int32_t idx = 0; idx < m_buffer_count; idx++) {
 		struct v4l2_buffer tV4L2buf;
 		memset(&tV4L2buf, 0, sizeof(struct v4l2_buffer));
 
 		tV4L2buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		tV4L2buf.memory = V4L2_MEMORY_MMAP;
-		tV4L2buf.index = i;
+		tV4L2buf.index = idx;
 
-		if (ioctl(m_vd_id, VIDIOC_QBUF, &tV4L2buf)) {
+		if (ioctl(m_devFd, VIDIOC_QBUF, &tV4L2buf)) {
 			yang_error("VIDIOC_QBUF");
 		}
 	}
-
+    
+	// 让摄像头开始采集视频流
 	enum v4l2_buf_type v4l2type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if (ioctl(m_vd_id, VIDIOC_STREAMON, &v4l2type)) {
+	if (ioctl(m_devFd, VIDIOC_STREAMON, &v4l2type)) {
 		yang_error("VIDIOC_STREAMON");
 	}
 
 	fd_set fds;
-	struct timeval tv;
-	int32_t r;
+	
 	FD_ZERO(&fds);
-	FD_SET(m_vd_id, &fds);
+	FD_SET(m_devFd, &fds);
+
 	m_isloop = 1;
-	m_vhandle->m_start_time = 0;
 
 	while (m_isloop) {
+		struct timeval tv;
 		tv.tv_sec = 2;
 		tv.tv_usec = 0;
-		r = select(m_vd_id + 1, &fds, NULL, NULL, &tv);
 
-		if (-1 == r) {
-			if (EINTR == errno)
-				continue;
-			yang_error("video capture Fail to select");
-			exit(EXIT_FAILURE);
-		}
-
-		if (0 == r) {
-			yang_error("video capture select Timeout\n");
-			exit(EXIT_FAILURE);
+		int32_t r = select(m_devFd + 1, &fds, NULL, NULL, &tv);
+        
+		// I/O 复用异常处理
+		{
+            if (-1 == r) {
+		    	// 被信号中断则继续等待
+		    	if (EINTR == errno) {
+		    		continue;
+		    	}
+    
+		    	yang_error("video capture failed to select");
+		    	exit(EXIT_FAILURE);
+		    }
+            else if (0 == r) {
+		    	yang_error("video capture select Timeout\n");
+		    	exit(EXIT_FAILURE);
+		    }
 		}
 		
-		this->readBuffer();
+		// 读取视频帧数据
+		{
+		    struct v4l2_buffer buffer;
+    
+	        memset(&buffer, 0, sizeof(buffer));
+	        buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	        buffer.memory = V4L2_MEMORY_MMAP;
+            
+	        // 从驱动取出已填满的缓冲区
+	        if (ioctl(m_devFd, VIDIOC_DQBUF, &buffer) != 0) {
+	        	yang_error("VIDIOC_DQBUF");
+	        	exit(1);
+	        }
+            
+	        // 计算时间戳
+	        long timeDiff = 0;
+        
+	        if (!m_isFirstFrame) {
+	        	m_isFirstFrame = true;
+        
+	        	m_startTime.tv_sec = buffer.timestamp.tv_sec;
+	        	m_startTime.tv_usec = buffer.timestamp.tv_usec;
+	        } 
+	        else {
+	        	timeDiff = (buffer.timestamp.tv_sec - m_startTime.tv_sec) * 1000000 +
+	        	           (buffer.timestamp.tv_usec - m_startTime.tv_usec);
+	        }
+            
+	        // 处理当前视频帧数据
+	        if (m_vhandle) {
+	        	m_vhandle->putBuffer(
+	        		timeDiff, 
+	        		m_user_buffer[buffer.index].start,
+	        		m_user_buffer[buffer.index].length
+	        	);
+	        }
+        
+	        // 将已处理完的缓冲区重新递交给驱动
+	        if (ioctl(m_devFd, VIDIOC_QBUF, &buffer) != 0) {
+	        	yang_error("VIDIOC_QBUF");
+	        	exit(1);
+	        }
+		}
 	}
 }
 

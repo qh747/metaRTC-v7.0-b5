@@ -46,9 +46,6 @@ protected:
 	void stopLoop();
 	void startLoop();
 
-
-void saveFile(char *fileName, uint8_t *pBuffer, long BufferLen);
-
 private:
 	YangVideoDecoderBuffer *m_in_videoBuffer;
 	vector<YangVideoBuffer*> *m_out_videoBuffer;

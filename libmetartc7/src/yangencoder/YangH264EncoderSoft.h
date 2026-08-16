@@ -42,8 +42,6 @@ protected:
 	x264_picture_t pic_out;
 	YangLoadLib m_lib;
 
-	void saveFile(char *fileName, uint8_t *pBuffer, int32_t BufferLen);
-
 private:
 
 	bool m_hasHeader;

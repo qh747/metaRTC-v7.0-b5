@@ -68,11 +68,8 @@ void YangVideoCaptureAndroid::stopLoop() {
 }
 
 void YangVideoCaptureAndroid::startLoop() {
-
 	m_isloop = 1;
-	m_vhandle->m_start_time = 0;
-
 	m_isloop=0;
-
 }
+
 #endif

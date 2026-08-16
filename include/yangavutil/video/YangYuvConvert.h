@@ -53,9 +53,7 @@ public:
 	int32_t scaleYuy2(uint8_t* src,uint8_t *dst,int32_t srcWidth,int32_t srcHeight,int32_t dstWidth,int32_t dstHeight,int32_t mode=2);
 	int32_t scaleRgb(uint8_t* src,uint8_t *dst,int32_t srcWidth,int32_t srcHeight,int32_t dstWidth,int32_t dstHeight,int32_t mode=2);
 	int32_t scaleArgb(uint8_t* src,uint8_t *dst,int32_t srcWidth,int32_t srcHeight,int32_t dstWidth,int32_t dstHeight,int32_t mode=2);
-// kRotate0 = 0,      // No rotation.	  kRotate90 = 90,    // Rotate 90 degrees clockwise.
-//	  kRotate180 = 180,  // Rotate 180 degrees.	  kRotate270 = 270,  // Rotate 270 degrees clockwise.
-	   // Deprecated.	  kRotateNone = 0,	  kRotateClockwise = 90,	  kRotateCounterClockwise = 270
+
 	int32_t rotateI420(uint8_t* src,uint8_t *dst,int32_t width,int32_t height,RotationMode mode);
 
 #if Yang_Enable_YuvSo

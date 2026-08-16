@@ -41,8 +41,6 @@ protected:
 	void stopLoop();
 	void startLoop();
 
-void saveFile(char *fileName, uint8_t *pBuffer, long BufferLen);
-
 private:
 	YangAudioPlayBuffer* m_out_audioBuffer;
 	YangAudioDecoder *m_decs;

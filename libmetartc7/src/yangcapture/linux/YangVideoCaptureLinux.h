@@ -40,8 +40,6 @@ protected:
 	virtual void startLoop();
 
 private:
-	int32_t readBuffer();
-
 	void stopCapture();
 	void stopCamDev();
 
@@ -50,21 +48,15 @@ public:
 
 private:
 	YangColorSpace m_fmt;
-
-	int32_t m_width;
-	int32_t m_height;
-
-	int32_t m_vd_id;
-	struct v4l2_buffer m_buf;
+	int32_t m_devFd;
 
 	buffer_type m_user_buffer[REQ_BUF_NUM];
 	int32_t m_buffer_count;
 
 	int32_t m_isloop;
-	int32_t m_isFirstFrame;
+	bool m_isFirstFrame;
 	
 	struct timeval m_startTime;
-	long m_timestatmp;
 };
 
 #endif // Yang_OS_LINUX
