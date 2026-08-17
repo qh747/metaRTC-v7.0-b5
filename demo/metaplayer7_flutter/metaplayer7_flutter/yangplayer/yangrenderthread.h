@@ -20,7 +20,6 @@ public:
 
     bool m_isRender;
 
-    int m_sid;
     void stopAll();
   
    int m_isStart;

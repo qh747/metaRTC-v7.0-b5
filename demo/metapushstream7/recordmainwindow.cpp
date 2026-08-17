@@ -129,7 +129,7 @@ void RecordMainWindow::failure(int32_t errcode) {
 void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
     switch (mss->messageId) {
         case YangM_Push_Connect: {
-            if(err) {
+            if (err) {
                 ui->m_b_rec->setText("开始");
                 m_isStartpush = !m_isStartpush;
                 ui->m_l_err->setText("push error(" + QString::number(err) + ")!");
@@ -155,10 +155,9 @@ void RecordMainWindow::closeEvent(QCloseEvent* event) {
     exit(0);
 }
 
-void RecordMainWindow::initVideoThread(YangRecordThread* prt) {
-    m_rt = prt;
-    m_rt->m_video = m_win0;
-    m_rt->initPara(m_context);
+void RecordMainWindow::initVideoThread(YangRecordThread* recThd) {
+    m_rt = recThd;
+    m_rt->m_playwidget = m_win0;
 }
 
 void RecordMainWindow::closeAll() {

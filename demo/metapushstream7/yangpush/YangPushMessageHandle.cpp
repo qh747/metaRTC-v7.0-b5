@@ -77,6 +77,6 @@ void YangPushMessageHandle::handleMessage(YangSysMessage* mss) {
 	}
 
 	if (m_receive) {
-			m_receive->receiveSysMessage(mss,ret);
+		m_receive->receiveSysMessage(mss, ret);
 	}
 }

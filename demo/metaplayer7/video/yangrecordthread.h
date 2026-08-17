@@ -30,9 +30,7 @@ public:
     YangSynBuffer* m_syn;
     bool m_isRender;
 
-    int m_sid;
     void stopAll();
-    int showType;
 
     void setBlackBk();
 

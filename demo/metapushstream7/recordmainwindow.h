@@ -36,8 +36,8 @@ public:
 
 public:
     void startCapture();
-    void initVideoThread(YangRecordThread* prt);
-    void closeEvent( QCloseEvent* event );
+    void initVideoThread(YangRecordThread* recThd);
+    void closeEvent(QCloseEvent* event);
 
 private slots:
     void on_m_b_rec_clicked();

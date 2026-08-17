@@ -14,8 +14,6 @@
 YangRenderThread::YangRenderThread()
 {
     m_isLoop=0;
-   
-    m_sid=1;
  
 
     m_isStart=0;

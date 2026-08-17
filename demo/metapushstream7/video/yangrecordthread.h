@@ -15,7 +15,6 @@ public:
     virtual ~YangRecordThread();
 
 public:
-    void initPara(YangContext* context);
     void stopAll();
 
 private:
@@ -26,26 +25,19 @@ private:
 
 public:
     int32_t m_isLoop;
-
-    int32_t m_sid;
-    int32_t showType;
-
+    
+    // 从m_videoBuffer读取数据进行渲染
 #if Yang_OS_APPLE
-    YangYuvPlayWidget* m_video;
+    YangYuvPlayWidget* m_playwidget;
 #else
-    YangPlayWidget* m_video;
+    YangPlayWidget* m_playwidget;
 #endif
-
+    
+    // 存放摄像头采集数据的缓冲区
     YangVideoBuffer* m_videoBuffer;
 
 private:
     int32_t m_isStart;
-
-    YangColor m_bgColor;
-    YangColor m_textColor;
-
-    YangContext* m_para;
-    YangFrame m_frame;
 };
 
 #endif // YANGTHREAD_H

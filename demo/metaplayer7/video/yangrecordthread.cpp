@@ -13,8 +13,6 @@ YangRecordThread::YangRecordThread()
     m_syn=nullptr;
 
 
-    m_sid=1;
-    showType=1;
 
     m_isStart=0;
     m_isRender=false;
