@@ -179,7 +179,7 @@ void RecordMainWindow::startCapture() {
 }
 
 void RecordMainWindow::on_m_b_rec_clicked() {
-    if(!m_isStartpush){
+    if (!m_isStartpush) {
         ui->m_l_err->setText("");
         ui->m_b_rec->setText("stop");
 
@@ -197,7 +197,7 @@ void RecordMainWindow::on_m_b_rec_clicked() {
             (void*)m_url.c_str()
         );
     }
-    else{
+    else {
         ui->m_b_rec->setText("start");
         m_isStartpush = !m_isStartpush;
         yang_post_message(YangM_Push_Disconnect, 0, NULL);
@@ -205,7 +205,7 @@ void RecordMainWindow::on_m_b_rec_clicked() {
 }
 
 void RecordMainWindow::on_m_c_whip_clicked() {
-    char s[128] = {0};
+    char s[128] = { 0 };
 
     if (ui->m_c_whip->checkState() == Qt::CheckState::Checked) {
         m_context->avinfo.sys.mediaServer = Yang_Server_Whip_Whep;
@@ -221,8 +221,9 @@ void RecordMainWindow::on_m_c_whip_clicked() {
 }
 
 void RecordMainWindow::on_m_c_janus_clicked() {
-    char s[128] = {0};
-    if(ui->m_c_janus->checkState() == Qt::CheckState::Checked){
+    char s[128] = { 0 };
+
+    if (ui->m_c_janus->checkState() == Qt::CheckState::Checked) {
         sprintf(s, "http://%s:7080/whip/endpoint/metaRTC", m_localIp);
         ui->m_url->setText(s);
 

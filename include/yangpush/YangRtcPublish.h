@@ -4,56 +4,52 @@
 //
 #ifndef SRC_YANGMEETING_INCLUDE_YangRtcPublish_H_
 #define SRC_YANGMEETING_INCLUDE_YangRtcPublish_H_
+
 #include <yangrtc/YangPeerConnection7.h>
 #include <yangutil/yangavinfotype.h>
 #include <yangutil/sys/YangThread2.h>
 #include <yangutil/sys/YangSysMessageI.h>
 #include <yangutil/buffer/YangAudioEncoderBuffer.h>
 #include <yangutil/buffer/YangVideoEncoderBuffer.h>
-#include <vector>
-using namespace std;
-class YangRtcPublish: public YangThread,public YangCallbackRtc {
+
+class YangRtcPublish : public YangThread, public YangCallbackRtc {
 public:
-	YangRtcPublish(YangContext *pcontext);
+	YangRtcPublish(YangContext* context);
 	virtual ~YangRtcPublish();
-    int32_t init(char* url,yangbool isWhip);
 
-    int32_t connectMediaServer();
-    int32_t disConnectMediaServer();
+public:
+    virtual void setMediaConfig(int32_t uid, YangAudioParam* audio, YangVideoParam* video) {}
+    virtual void sendRequest(int32_t uid, uint32_t ssrc, YangRequestType reqType);
 
-	void setInVideoMetaData(YangVideoMeta *pvmd);
-	void setInAudioList(YangAudioEncoderBuffer *pbuf);
-	void setInVideoList(YangVideoEncoderBuffer *pbuf);
+public:
+    virtual void stop();
 
-    void setMediaConfig(int32_t  uid,YangAudioParam* audio,YangVideoParam* video);
-    void sendRequest(int32_t  uid,uint32_t  ssrc,YangRequestType req);
-
-	int32_t stopPublishAudioData();
-	int32_t stopPublishVideoData();
-
-	int32_t publishMsg(YangFrame* msgFrame);
-
-	int32_t m_netState;
-	int32_t isPublished;
-	int32_t m_isStart;
-	void stop();
-protected:
-	void run();
-	void handleError(int32_t perrCode);
-	void startLoop();
-	void startLoop_h265();
-	YangContext *m_context;
-	YangVideoMeta *m_vmd;
-	YangVideoEncoderBuffer *m_in_videoBuffer;
-	YangAudioEncoderBuffer *m_in_audioBuffer;
-
-	int32_t m_isConvert;
-	int32_t m_isInit;
-	int32_t m_audioEncoderType;
-        std::vector<YangPeerConnection7*> m_pushs;
 private:
-	int32_t m_transType;
-	int32_t notifyState;
+    virtual void run();
+
+public:
+    int32_t init(char* url, yangbool isWhip);
+
+	inline void setInVideoMetaData(YangVideoMeta* meta) { m_meta = meta; }
+	inline void setInAudioList(YangAudioEncoderBuffer* buf) { m_audioBuffer = buf; }
+	inline void setInVideoList(YangVideoEncoderBuffer* buf) { m_videoBuffer = buf; }
+
+	inline void disConnect() { yang_delete(m_peerConn); }
+
+public:
+	int32_t m_isStart;
+
+private:
+    YangContext* m_context;
+	YangVideoMeta* m_meta;
+
+	YangAudioEncoderBuffer* m_audioBuffer;
+	YangVideoEncoderBuffer* m_videoBuffer;
+
+	int32_t m_isInLoop;
+	int32_t m_isInit;
+
+    YangPeerConnection7* m_peerConn;
 };
 
-#endif /* SRC_YANGMEETING_INCLUDE_YangRtcPublish_H_ */
+#endif // SRC_YANGMEETING_INCLUDE_YangRtcPublish_H_

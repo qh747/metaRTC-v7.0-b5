@@ -563,13 +563,17 @@ typedef struct {
 	int32_t userId;
 	int32_t remotePort;
 	int32_t mediaServer;
+
 	YangIceMode iceMode;
 	YangIpFamilyType familyType;
 	YangRtcDirection direction;
+
 	char remoteIp[64];
+
 	YangRtcInfo rtc;
 	YangPushAudioInfo pushAudio;
 	YangPushVideoInfo pushVideo;
+	
 } YangPeerInfo;
 
 typedef struct {

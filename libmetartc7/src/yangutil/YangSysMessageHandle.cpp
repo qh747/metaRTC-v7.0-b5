@@ -68,7 +68,12 @@ void YangSysMessageHandle::stop() {
 }
 
 void YangSysMessageHandle::putMessage(
-	YangSysMessageI* handle, int32_t pst, int32_t uid, int32_t handleState, void* user) {
+	YangSysMessageI* handle, 
+	int32_t pst, 
+	int32_t uid, 
+	int32_t handleState, 
+	void* user) {
+		
 	if (!m_loop.load()) {
 		return;
 	}

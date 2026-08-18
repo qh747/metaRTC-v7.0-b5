@@ -9,6 +9,7 @@
 
 #define yang_stop_thread(x) if (x) { while(x->m_isStart) yang_usleep(1000); }
 #define yang_stop(x) if (x && x->m_isStart) { x->stop(); }
+
 class YangThread {
 public:
 	YangThread() { m_thread = 0; }

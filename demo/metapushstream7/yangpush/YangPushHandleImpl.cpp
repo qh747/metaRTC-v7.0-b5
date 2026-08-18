@@ -29,7 +29,7 @@ YangPushHandleImpl::YangPushHandleImpl(
 
 YangPushHandleImpl::~YangPushHandleImpl() {
 	if (m_rtcPub) {
-		m_rtcPub->disConnectMediaServer();
+		m_rtcPub->disConnect();
 	}
 
 	m_cap->stopAll();
@@ -67,7 +67,7 @@ void YangPushHandleImpl::changeSrc(int videoType) {
 
 void YangPushHandleImpl::stopPublish() {
 	if (m_rtcPub) {
-		m_rtcPub->disConnectMediaServer();
+		m_rtcPub->disConnect();
 	}
 
 	yang_stop(m_rtcPub);
