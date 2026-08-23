@@ -171,10 +171,6 @@ int32_t yang_encode_rtcpCompound(YangRtcpCompound *rtcps, YangBuffer *buffer) {
 	return err;
 }
 
-uint64_t yang_rtcpCompound_nb_bytes(YangRtcpCompound *rtcps){
-	return kRtcpPacketSize;
-}
-
 int32_t yang_rtcpCompound_add_rtcp(YangRtcpCompound *rtcps, YangRtcpCommon *rtcp)
 {
 	if(rtcps==NULL||rtcp==NULL)

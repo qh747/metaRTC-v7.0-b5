@@ -144,8 +144,8 @@ void YangRtcPublish::run() {
 					);
 				}
 
-				data.setVideoFrametype(data.context,YANG_Frametype_Spspps);
-				data.setMetaTimestamp(data.context,videoFrame.pts);
+				data.setVideoFrametype(data.context, YANG_Frametype_Spspps);
+				data.setMetaTimestamp(data.context, videoFrame.pts);
 
                 ret = m_peerConn->on_video(data.getVideoFrame(data.context));
 
@@ -171,7 +171,7 @@ void YangRtcPublish::run() {
 				}
 			}
 
-			data.setVideoData(data.context,&videoFrame, videoType);
+			data.setVideoData(data.context, &videoFrame, videoType);
             int32_t sendVideoResult = m_peerConn->on_video(data.getVideoFrame(data.context));
 
 			if (sendVideoResult != Yang_Ok) {
@@ -208,8 +208,12 @@ int32_t YangRtcPublish::init(char* url, yangbool isWhip) {
     m_peerConn->addTransceiver(YangMediaVideo, info.direction);
 
 	int32_t ret = isWhip ? 
-	    yang_whip_connectWhipWhepServer(&m_peerConn->m_peer,url) : 
-		yang_whip_connectSfuServer(&m_peerConn->m_peer,url,m_context->avinfo.sys.mediaServer);
+	    yang_whip_connectWhipWhepServer(&m_peerConn->m_peer, url) : 
+		yang_whip_connectSfuServer(
+			&m_peerConn->m_peer, 
+			url, 
+			m_context->avinfo.sys.mediaServer
+		);
 
     if (ret == Yang_Ok) {
         yang_reindex(m_audioBuffer);

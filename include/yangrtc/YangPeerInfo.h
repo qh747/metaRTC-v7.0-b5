@@ -11,11 +11,11 @@ extern "C"{
 #endif
 
 void yang_init_peerInfo(YangPeerInfo* peerInfo);
-void yang_avinfo_initPeerInfo(YangPeerInfo* peerInfo,YangAVInfo* avinfo);
+void yang_avinfo_initPeerInfo(YangPeerInfo* peerInfo, YangAVInfo* avinfo);
 
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif /* INCLUDE_YANGRTC_YANGPEERINFO_H_ */
+#endif // INCLUDE_YANGRTC_YANGPEERINFO_H_

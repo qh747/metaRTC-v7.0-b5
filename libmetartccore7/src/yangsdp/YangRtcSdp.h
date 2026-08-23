@@ -5,35 +5,29 @@
 #define YangRtcSdp_H__
 
 #include <yangstream/YangStreamType.h>
-
 #include <yangssl/YangSsl.h>
 #include <yangsdp/YangSdpType.h>
 #include <yangsdp/YangMediaDesc.h>
 #include <yangsdp/YangMediaPayloadType.h>
 
-
-
 #define Yang_SDP_kTWCCExt  (char*)"http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"
 
-typedef struct
-{
+typedef struct {
 	char dtls_role[64];
 	char dtls_version[16];
-}YangSessionConfig;
 
+} YangSessionConfig;
 
-
-typedef struct
-{
+typedef struct {
 	char profile_level_id[16];
 	char packetization_mode[32];
 	char level_asymmerty_allow[16];
-}H264SpecificParam;
 
+} H264SpecificParam;
 
-
-typedef struct{
+typedef struct {
 	int32_t in_media_session;
+
 	// timing
 	int64_t start_time;
 	int64_t end_time;
@@ -49,6 +43,7 @@ typedef struct{
 	YangStringVector msids;
 
 	YangMediaDescVector media_descs;
+
 	// version
 	char version[16];
 
@@ -62,11 +57,13 @@ typedef struct{
 
 	// session_name
 	char session_name[64];
-}YangSdp;
+
+} YangSdp;
 
 void yang_create_rtcsdp(YangSdp* sdp);
 void yang_destroy_rtcsdp(YangSdp* sdp);
-int32_t yang_rtcsdp_encode(YangSdp *sdp, YangBuffer *os);
-int32_t yang_rtcsdp_parse(YangSdp* sdp,char* sdp_str);
+
+int32_t yang_rtcsdp_encode(YangSdp* sdp, YangBuffer* buf);
+int32_t yang_rtcsdp_parse(YangSdp* sdp, char* sdp_str);
 
 #endif

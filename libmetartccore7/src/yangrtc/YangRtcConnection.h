@@ -8,15 +8,14 @@
 #include <yangrtc/YangRtcSession.h>
 #include <yangice/YangRtcStun.h>
 
-typedef struct{
+typedef struct {
 	YangRtcSession* session;
-	int32_t (*addAudioTrack)(YangRtcSession *session,YangAudioCodec codec);
-	int32_t (*addVideoTrack)(YangRtcSession *session,YangVideoCodec codec);
+	int32_t (*addAudioTrack)(YangRtcSession* session, YangAudioCodec codec);
+	int32_t (*addVideoTrack)(YangRtcSession* session, YangVideoCodec codec);
+	int32_t (*addTransceiver)(YangRtcSession* session, YangMediaTrack media, YangRtcDirection direction);
 
-	int32_t (*addTransceiver)(YangRtcSession *session,YangMediaTrack media,YangRtcDirection direction);
-
-	int32_t (*createOffer)(YangRtcSession *session, char **psdp);
-	int32_t (*createAnswer)(YangRtcSession* session,char* answer);
+	int32_t (*createOffer)(YangRtcSession* session, char** psdp);
+	int32_t (*createAnswer)(YangRtcSession* session, char* answer);
 
 	int32_t (*createDataChannel)(YangRtcSession *session);
 
@@ -40,15 +39,19 @@ typedef struct{
 	void (*updateCandidateAddress)(YangRtcSession *session,char* ip,int32_t port) ;
 	void (*onConnectionStateChange)(YangRtcSession *session,YangRtcConnectionState state);
 
-}YangRtcConnection;
+} YangRtcConnection;
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-int32_t yang_create_rtcConnection(YangRtcConnection* conn,YangPeerInfo* peerInfo,YangPeerCallback* peerCallback);
-void yang_destroy_rtcConnection(YangRtcConnection* conn);
+int32_t yang_create_rtcConnection(
+	YangRtcConnection* conn, 
+	YangPeerInfo* peerInfo, 
+	YangPeerCallback* peerCallback
+);
 
+void yang_destroy_rtcConnection(YangRtcConnection* conn);
 
 #ifdef __cplusplus
 }

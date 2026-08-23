@@ -6,7 +6,6 @@
 #define INCLUDE_YANGRTC_YANGPEERCONNECTION_H_
 #include <yangutil/yangavinfo.h>
 
-
 typedef struct {
 	YangPeer peer;
 
