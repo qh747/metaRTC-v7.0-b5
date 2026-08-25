@@ -118,8 +118,6 @@ YangPeerConnection7::YangPeerConnection7(
 	m_peer.conn = NULL;
 
 	yang_create_peer(&m_peer);
-
-	memset(&m_conn, 0, sizeof(YangMetaConnection));
 	yang_create_metaConnection(&m_conn);
 }
 

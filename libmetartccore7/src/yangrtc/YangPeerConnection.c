@@ -203,7 +203,9 @@ static int32_t yang_pc_send_request_pli(YangPeer* peer) {
 void yang_create_metaConnection(YangMetaConnection* peerconn) {
 	if (peerconn == NULL) {
         return;
-	}	
+	}
+
+	memset(peerconn, 0, sizeof(YangMetaConnection));
 
 	peerconn->addAudioTrack = yang_pc_add_audio_track;
 	peerconn->addVideoTrack = yang_pc_add_video_track;

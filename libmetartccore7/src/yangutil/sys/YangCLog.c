@@ -6,7 +6,6 @@
 
 #include <stdarg.h>
 #include <assert.h>
-#include <ctype.h>
 #include <time.h>
 
 #if Yang_OS_ANDROID || Yang_OS_IOS

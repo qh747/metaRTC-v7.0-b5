@@ -103,7 +103,7 @@ RecordMainWindow::RecordMainWindow(QWidget* parent) : QMainWindow(parent), ui(ne
     yang_getLocalInfo(m_context->avinfo.sys.familyType, m_localIp);
 
     char s[128] = { 0 };
-    sprintf(s, "http://%s:1985/rtc/v1/whip/?app=live&stream=livestream", m_localIp);
+    sprintf(s, "http://%s:8080/index/api/whip?app=live&stream=test", m_localIp);
     ui->m_url->setText(s);
 
     memcpy(&m_screenInfo, &m_context->avinfo.video, sizeof(YangVideoInfo));
@@ -209,12 +209,12 @@ void RecordMainWindow::on_m_c_whip_clicked() {
 
     if (ui->m_c_whip->checkState() == Qt::CheckState::Checked) {
         m_context->avinfo.sys.mediaServer = Yang_Server_Whip_Whep;
-        sprintf(s, "http://%s:1985/rtc/v1/whip/?app=live&stream=livestream", m_localIp);
+        sprintf(s, "http://%s:8080/index/api/whip?app=live&stream=test", m_localIp);
 
     }
     else {
         m_context->avinfo.sys.mediaServer = Yang_Server_Zlm;
-        sprintf(s, "webrtc://%s:1985/live/livestream", m_localIp);
+        sprintf(s, "webrtc://%s:8080/live/test", m_localIp);
     }
 
     ui->m_url->setText(s);

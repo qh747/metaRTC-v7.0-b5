@@ -750,11 +750,10 @@ static int32_t yang_rtcconn_add_transceiver(
         return ERROR_RTC_CONNECT;
 	}
 
-	if (media == YangMediaAudio) {
+    if (media == YangMediaAudio) {
         session->context.audioDirection = direction;
 	}
-
-	if (media == YangMediaVideo) {
+    else if (media == YangMediaVideo) {
         session->context.videoDirection = direction;
 	}
 		
