@@ -21,7 +21,6 @@ public:
 virtual ~YangWinAudioApiRender();
 public:
     int initRender();
-    void setAec(YangRtcAec *paec);
 
     int playThread();
     int startRender();

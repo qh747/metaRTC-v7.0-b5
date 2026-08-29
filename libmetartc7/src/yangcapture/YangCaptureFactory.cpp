@@ -5,13 +5,10 @@
 #include <yangcapture/YangCaptureFactory.h>
 
 #if Yang_OS_WIN
-#include <yangaudiodev/win/YangWinAudioCapture.h>
-#include <yangaudiodev/win/YangWinAudioApiDevice.h>
 #include <yangaudiodev/win/YangAudioCaptureWindows.h>
 #include "win/YangVideoCaptureWindows.h"
 
 #elif Yang_OS_LINUX
-#include <yangaudiodev/linux/YangAudioAecLinux.h>
 #include <yangaudiodev/linux/YangAudioCaptureLinux.h>
 #include <yangcapture/linux/YangVideoCaptureLinux.h>
 

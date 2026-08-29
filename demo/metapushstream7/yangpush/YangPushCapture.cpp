@@ -49,25 +49,13 @@ YangPushCapture::~YangPushCapture() {
 
 void YangPushCapture::startAudioCaptureState() {
     if (m_audioCapture) {
-		m_audioCapture->setCatureStart();
+		m_audioCapture->setCatureState(yangtrue);
 	}
 }
 
 void YangPushCapture::stopAudioCaptureState() {
     if (m_audioCapture) {
-		m_audioCapture->setCatureStop();
-	}
-}
-
-void YangPushCapture::setAec(YangRtcAec* aec) {
-	if (m_audioCapture) {
-		m_audioCapture->setAec(aec);
-	}
-}
-
-void YangPushCapture::setInAudioBuffer(std::vector<YangAudioPlayBuffer*>* pbuf) {
-	if (m_audioCapture) {
-		m_audioCapture->setInAudioBuffer(pbuf);
+		m_audioCapture->setCatureState(yangfalse);
 	}
 }
 
@@ -83,7 +71,7 @@ void YangPushCapture::startVideoCapture() {
 	}
 }
 
-int32_t YangPushCapture::initAudio(YangPreProcess* preProc) {
+int32_t YangPushCapture::initAudio() {
 	if (m_out_audioBuffer == NULL) {
 		m_out_audioBuffer = new YangAudioBuffer(m_context->avinfo.audio.audioCacheNum);
 	}
@@ -97,10 +85,8 @@ int32_t YangPushCapture::initAudio(YangPreProcess* preProc) {
 			return yang_error_wrap(ret, "audio capture init fail!");
 		}
 
-		m_audioCapture->setPreProcess(preProc);
 		m_audioCapture->setOutAudioBuffer(m_out_audioBuffer);
-
-		m_audioCapture->setCatureStop();
+		m_audioCapture->setCatureState(yangfalse);
 	}
 
 	this->stopAudioCaptureState();

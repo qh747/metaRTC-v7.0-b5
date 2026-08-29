@@ -3,6 +3,7 @@
 //
 #ifndef ___YangAudioCaptureHandle__
 #define ___YangAudioCaptureHandle__
+
 #include <yangutil/buffer/YangAudioBuffer.h>
 #include <yangavutil/audio/YangAudioUtil.h>
 #include <yangavutil/audio/YangRtcAec.h>
@@ -10,32 +11,20 @@
 
 class YangAudioCaptureHandle {
 public:
-    YangAudioCaptureHandle(YangAVInfo *avinfo);
-	virtual ~YangAudioCaptureHandle(void);
-    YangRtcAec *m_aec;
+    YangAudioCaptureHandle(YangAVInfo* avinfo);
+	virtual ~YangAudioCaptureHandle();
 
 public:
-	void putBuffer(uint8_t *pBuffer,int32_t plen);
-	void putBuffer2(uint8_t *pBuffer,int32_t plen);
-	void putEchoBuffer(uint8_t *pBuffer,int32_t plen);
-	void putEchoBuffer2(uint8_t *pBuffer,int32_t plen);
-	void putEchoPlay(short *pbuf,int32_t plen);
-	void startRecordWave(char *filename);
-	void stopRecordWave();
-	void setOutAudioBuffer(YangAudioBuffer *plist);
-	YangAudioBuffer *m_aecPlayBuffer;
-	yangbool m_enableBuf;
+	void putBuffer(uint8_t* buffer, int32_t len);
+
+	void setOutAudioBuffer(YangAudioBuffer* buffer);
+	void setCaptureState(yangbool state);
+
 private:
+	yangbool m_enabled;
 
-	int32_t hasPlayData;
-	int32_t m_aecBufferFrames;
-	int32_t isFirst;
-	int32_t m_audioLen;
-	short *pcm;
-
-	YangFrame m_audioFrame;
-	YangAudioBuffer *m_audioList;
-	YangAudioResample m_resample;
+	YangFrame m_frame;
+	YangAudioBuffer* m_buffer;
 };
-//#endif
-#endif
+
+#endif // ___YangAudioCaptureHandle__

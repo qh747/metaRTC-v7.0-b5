@@ -9,7 +9,7 @@
 #include <yangpush/YangSendVideoImpl.h>
 #include <yangutil/sys/YangUrl.h>
 
-class YangPushHandleImpl :public YangPushHandle {
+class YangPushHandleImpl : public YangPushHandle {
 public:
 	YangPushHandleImpl(
 		bool hasAudio,

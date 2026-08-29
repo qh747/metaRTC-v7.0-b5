@@ -63,28 +63,14 @@ YangAudioCaptureWindows::~YangAudioCaptureWindows() {
 		yang_delete(m_ahandle);
 	}
 }
-void YangAudioCaptureWindows::setCatureStart() {
-    m_ahandle->m_enableBuf = 1;
+void YangAudioCaptureWindows::setCatureState(yangbool enabled) {
+    m_ahandle->setCaptureState(enabled);
 }
-void YangAudioCaptureWindows::setCatureStop() {
-    m_ahandle->m_enableBuf = 0;
-}
+
 void YangAudioCaptureWindows::setOutAudioBuffer(YangAudioBuffer *pbuffer) {
 	m_ahandle->setOutAudioBuffer(pbuffer);
 }
-void YangAudioCaptureWindows::setPlayAudoBuffer(YangAudioBuffer *pbuffer) {
-	m_ahandle->m_aecPlayBuffer = pbuffer;
-}
-void YangAudioCaptureWindows::setAec(YangRtcAec *paec) {
-	m_ahandle->m_aec = paec;
-}
-void YangAudioCaptureWindows::setPreProcess(YangPreProcess *pp) {
 
-}
-
-void YangAudioCaptureWindows::setInAudioBuffer(vector<YangAudioPlayBuffer*> *pal) {
-
-}
 void YangAudioCaptureWindows::stopLoop() {
 	m_loops = 0;
 	if(m_pm!=NULL) m_pm->Stop();

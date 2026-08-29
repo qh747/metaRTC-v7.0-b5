@@ -18,8 +18,6 @@ YangRecAudioCaptureHandle::YangRecAudioCaptureHandle(YangAVInfo* avinfo):YangAud
     if(avinfo->audio.sample==48000) m_len=960*6;
 	m_buf=new uint8_t[m_len];
 
-	m_aec=NULL;
-
 }
 YangRecAudioCaptureHandle::~YangRecAudioCaptureHandle(void)
 {
@@ -59,7 +57,7 @@ YangRecAudioCaptureHandle::~YangRecAudioCaptureHandle(void)
     {
 
     	memset(m_buf,0,m_len);  
-        putBuffer2(pBuffer,BufferLen);
+        putBuffer(pBuffer,BufferLen);
 
 
 	return E_NOTIMPL;

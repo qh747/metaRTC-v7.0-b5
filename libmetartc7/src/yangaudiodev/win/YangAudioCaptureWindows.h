@@ -24,13 +24,8 @@ public:
     YangRecAudioCaptureHandle *m_ahandle;
 
     int32_t init();
-	void setInAudioBuffer(vector<YangAudioPlayBuffer*> *pal);
-	void setPreProcess(YangPreProcess *pp);
-	void setCatureStart();
-	void setCatureStop();
+	virtual void setCatureState(yangbool enabled);
     void setOutAudioBuffer(YangAudioBuffer *pbuffer);
-	void setPlayAudoBuffer(YangAudioBuffer *pbuffer);
-    void setAec(YangRtcAec *paec);
 
 protected:
 
@@ -49,7 +44,7 @@ private:
 	HRESULT EnumerateDevices(REFGUID category, IEnumMoniker **ppEnum);
 
 private:
-
+    int32_t aIndex;
 	int32_t m_size;
 	int32_t m_loops;
 	int32_t m_channel;

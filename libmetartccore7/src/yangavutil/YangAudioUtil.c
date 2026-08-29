@@ -107,7 +107,7 @@ static int32_t yang_resample(YangAudioResampleContext* context,YangFrame *audioF
 
 	if (context->channelTrans) {
 		if (context->inChannel == 1)
-			MonoToStereo((short*) buf, (short*) context->inBuf, context->inFrames);
+			MonoToStereo((short*) context->inBuf, (short*) buf, context->inFrames);
 		else
 			StereoToMono((short*) buf, (short*) context->inBuf, context->inFrames);
 
@@ -165,27 +165,21 @@ void yang_destroy_audioresample(YangAudioResample* res){
 	yang_free(res->context);
 }
 
-int32_t MonoToStereo(int16_t *pData, int16_t *dData,
-		int32_t samples_per_channel) {
-	int32_t i;
-
-	for (i = 0; i < samples_per_channel; i++) {
-		dData[2 * i] = pData[i];
-		dData[2 * i + 1] = pData[i];
+int32_t MonoToStereo(int16_t* stereoBuf, int16_t* monoBuf, int32_t samplesPerChannel) {
+	// 将单声道的数据在双声道中左右声道各拷贝相同的一份
+	for (int32_t idx = 0; idx < samplesPerChannel; idx++) {
+		stereoBuf[2 * idx] = monoBuf[idx];
+		stereoBuf[2 * idx + 1] = monoBuf[idx];
 	}
 
-	return samples_per_channel * 2;
+	return samplesPerChannel * 2;
 }
 
-int32_t StereoToMono(const int16_t *src_audio, int16_t *dst_audio,
-		int32_t samples_per_channel) {
-	int32_t i;
-
-	for (i = 0; i < samples_per_channel; i++) {
-		dst_audio[i] = ((int32_t)(src_audio[2 * i])
-				+ src_audio[2 * i + 1]) >> 1;
+int32_t StereoToMono(int16_t* monoBuf, const int16_t* stereoBuf, int32_t samplesPerChannel) {
+	for (int32_t i = 0; i < samplesPerChannel; i++) {
+		monoBuf[i] = ((int32_t)(stereoBuf[2 * i]) + stereoBuf[2 * i + 1]) >> 1;
 	}
 
-	return Yang_Ok;
+	return samplesPerChannel;
 }
 

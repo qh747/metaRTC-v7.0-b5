@@ -8,41 +8,46 @@
 #include <yangutil/buffer/YangAudioEncoderBuffer.h>
 #include <yangutil/buffer/YangVideoEncoderBuffer.h>
 #include <yangutil/buffer/YangVideoBuffer.h>
-
 #include <yangencoder/YangAudioEncoderHandle.h>
 #include <yangencoder/YangVideoEncoderHandle.h>
 
-
 class YangPushEncoder {
 public:
-	YangPushEncoder(YangContext *pcontext);
+	YangPushEncoder(YangContext* context);
 	virtual ~YangPushEncoder();
+
 public:
-	void setVideoInfo(YangVideoInfo* pvideo);
+	void setVideoInfo(YangVideoInfo* info);
+
 	void initVideoEncoder();
 	void initAudioEncoder();
+
 	void startAudioEncoder();
 	void startVideoEncoder();
-	void setInAudioBuffer(YangAudioBuffer *pal);
-	void setInVideoBuffer(YangVideoBuffer *pvl);
+
+	void setInAudioBuffer(YangAudioBuffer* pal);
+	void setInVideoBuffer(YangVideoBuffer* pvl);
+
 	YangAudioEncoderBuffer * getOutAudioBuffer();
 	YangVideoEncoderBuffer * getOutVideoBuffer();
+
 	YangVideoMeta * getOutVideoMetaData();
+
 	void stopAll();
 	void sendMsgToEncoder(YangRequestType req);
 
 	void deleteVideoEncoder();
+
 private:
+	YangVideoEncoderHandle* m_ve;
+	YangAudioEncoderHandle* m_ae;
 
-	YangVideoEncoderHandle *m_ve;
-	YangAudioEncoderHandle *m_ae;
+	YangAudioEncoderBuffer* m_out_auidoBuffer;
+	YangVideoEncoderBuffer* m_out_videoBuffer;
 
-	YangAudioEncoderBuffer *m_out_auidoBuffer;
-	YangVideoEncoderBuffer *m_out_videoBuffer;
-
-	YangContext *m_context;
-	YangVideoMeta *m_vmd;
+	YangContext* m_context;
+	YangVideoMeta* m_vmd;
 	YangVideoInfo* m_videoInfo;
 };
 
-#endif /* YANGAPP_YANGENCODERAPP_H_ */
+#endif // YANGAPP_YANGENCODERAPP_H_

@@ -75,12 +75,6 @@ YangWinAudioApiRender::~YangWinAudioApiRender() {
     m_aec=NULL;
 }
 
-
-void YangWinAudioApiRender::setAec(YangRtcAec *paec){
-
-    m_aec=paec;
-    m_audioData.setAec();
-}
 int YangWinAudioApiRender::setSpeakerVolume(int volume) {
     if (m_deviceOut == NULL) {
         return 1;

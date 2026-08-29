@@ -21,15 +21,9 @@ public:
 public:
 	YangAudioCaptureHandle *m_ahandle;
 	int32_t init();
-	void setPreProcess(YangPreProcess *pp);
-	void setCatureStart();
-	void setCatureStop();
+	virtual void setCatureState(yangbool enabled);
 	void setOutAudioBuffer(YangAudioBuffer *pbuffer);
-	void setPlayAudoBuffer(YangAudioBuffer *pbuffer);
-	void setInAudioBuffer(vector<YangAudioPlayBuffer*> *pal);
-    void setAec(YangRtcAec *paec);
     void on_audio(uint8_t* data,uint32_t nb);
-    void setPlayAudioParam(int32_t  puid,YangAudioParam* audioParam);
     void setCaptureVolume(int32_t vol);
     void setPlayVolume(int32_t vol);
 protected:

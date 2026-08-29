@@ -26,7 +26,7 @@ protected:
 
 public:
     int32_t initVideo();
-	int32_t initAudio(YangPreProcess* preProc = NULL);
+	int32_t initAudio();
 
     void startCamera();
     void stopCamera();
@@ -39,9 +39,6 @@ public:
 
 	void stopAudioCaptureState();
 	void stopVideoCaptureState();
-
-	void setAec(YangRtcAec* aec);
-	void setInAudioBuffer(vector<YangAudioPlayBuffer*> *pbuf);
     
 	inline YangAudioBuffer* getOutAudioBuffer() { return m_out_audioBuffer; }
 	inline YangVideoBuffer* getOutVideoBuffer() { return m_out_videoBuffer; }

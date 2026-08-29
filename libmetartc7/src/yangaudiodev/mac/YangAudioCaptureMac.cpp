@@ -18,7 +18,6 @@ YangAudioCaptureMac::YangAudioCaptureMac(YangAVInfo *avinfo) //:YangAudioCapture
 {
 	m_avinfo = avinfo;
 	m_ahandle = new YangAudioCaptureHandle(avinfo);
-	aIndex = 0;
 
 	m_loops = yangfalse;
 	m_isInited=yangfalse;
@@ -58,39 +57,13 @@ void YangAudioCaptureMac::setPlayVolume(int32_t vol){
 
 }
 
-void YangAudioCaptureMac::setCatureStart() {
-	m_ahandle->m_enableBuf = 1;
+void YangAudioCaptureMac::setCatureState(yangbool enabled) {
+   m_ahandle->setCaptureState(enabled);
 }
 
-void YangAudioCaptureMac::setCatureStop() {
-	m_ahandle->m_enableBuf = 0;
-}
 void YangAudioCaptureMac::setOutAudioBuffer(YangAudioBuffer *pbuffer) {
 	m_ahandle->setOutAudioBuffer(pbuffer);
 }
-
-void YangAudioCaptureMac::setPlayAudoBuffer(YangAudioBuffer *pbuffer) {
-	m_ahandle->m_aecPlayBuffer = pbuffer;
-}
-
-void YangAudioCaptureMac::setAec(YangRtcAec *paec) {
-	m_ahandle->m_aec = paec;
-}
-
-void YangAudioCaptureMac::setInAudioBuffer(
-		vector<YangAudioPlayBuffer*> *pal) {
-
-}
-
-void YangAudioCaptureMac::setPreProcess(YangPreProcess *pp) {
-
-}
-
-void YangAudioCaptureMac::setPlayAudioParam(int32_t puid,YangAudioParam* audioParam){
-	if(audioParam==NULL) return;
-	//m_audioData.initPlay(audioParam->sample, audioParam->channel);
-}
-
 
 int32_t YangAudioCaptureMac::init() {
 	if(m_isInited)

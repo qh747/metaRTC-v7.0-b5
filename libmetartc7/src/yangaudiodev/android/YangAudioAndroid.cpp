@@ -72,9 +72,8 @@ void g_yang_bqRecorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 	}
 
 	if(sl->recordCallback) sl->recordCallback(sl->record.buffer, sl->record.bufferLen,sl->record.user);
-	//ah->putBuffer2(sl->record.buffer, sl->record.bufferLen);
-
 }
+
 // creates the OpenSL ES audio engine
 SLresult yang_audioAndroid_openSLCreateEngine(YangOpensl *p)
 {

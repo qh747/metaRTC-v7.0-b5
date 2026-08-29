@@ -163,32 +163,12 @@ void YangAudioPlayLinux::startLoop() {
 	YangFrame frame;
 	memset(&frame,0,sizeof(YangFrame));
 
-#if Yang_Enable_Audio_Poll
-	struct pollfd *ufds;
-	int count = snd_pcm_poll_descriptors_count(m_handle);
-	ufds = (struct pollfd *)malloc(sizeof(struct pollfd) * count);
-	if ((err = snd_pcm_poll_descriptors(m_handle, ufds, count)) < 0) {
-		yang_error("Unable to obtain poll descriptors for playback: %s\n",
-				snd_strerror(err));
-		return;
-	}
-#endif
 	int32_t audiolen = m_frames * m_channel * 2;
 
 	while (m_loops) {
 		status=0;
-#if Yang_Enable_Audio_Poll
-		unsigned short revents = 0;
-		err = snd_pcm_poll_descriptors_revents(m_handle, ufds, count, &revents);
-		if (err < 0) {
-			yang_error("error in alsa_device_playback_ready: %s",snd_strerror(err));
-			return;
-		}
-		if (revents & POLLOUT) {
-#else
 			yang_usleep(5000);
 			if(snd_pcm_avail_update(m_handle)>=m_frames){
-#endif
 			frame.nb=0;
 			frame.payload=NULL;
 			tmp =m_audioData.getRenderAudioData(audiolen);
@@ -220,9 +200,6 @@ void YangAudioPlayLinux::startLoop() {
 
 	snd_pcm_close(m_handle);
 	tmp = NULL;
-#if Yang_Enable_Audio_Poll
-	if(ufds) free(ufds);
-#endif
 	m_handle = NULL;
 	yang_deleteA(pcm);
 }

@@ -23,7 +23,7 @@ public:
     YangSynBuffer* m_syn;
     YangPreProcess* m_preProcess;
     YangAudioResample m_res;
-    void setAec();
+
     void setRenderLen(int plen);
     void setContext(YangSynBufferManager* streams);
     void initRender(int psample,int pchannel);

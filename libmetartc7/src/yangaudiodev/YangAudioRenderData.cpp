@@ -58,18 +58,6 @@ void YangAudioRenderData::initPlay(int psample, int pchannel) {
     m_res.initIn(m_res.context,psample, pchannel);
 }
 
-
-
-void YangAudioRenderData::setAec(){
-
-    if(m_aecBuf==NULL) m_aecBuf=new uint8_t[Yang_Mix_BUF_Len];
-    m_hasAec=true;
-}
-
-
-
-
-
 uint8_t* YangAudioRenderData::getAudioRef(YangFrame* pframe){
 	if(m_syn) {
 		return m_syn->getAudioRef(m_syn->session,pframe);

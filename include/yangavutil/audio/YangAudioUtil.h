@@ -40,8 +40,10 @@ extern "C" {
 #endif
 void yang_create_audioresample(YangAudioResample* res);
 void yang_destroy_audioresample(YangAudioResample* res);
-int32_t MonoToStereo(int16_t *pData, int16_t *dData, int32_t samples_per_channel);
-int32_t StereoToMono(const int16_t* src_audio,int16_t* dst_audio,int32_t samples_per_channe);
+
+int32_t MonoToStereo(int16_t* stereoBuf, int16_t* monoBuf, int32_t samplesPerChannel);
+int32_t StereoToMono(int16_t* monoBuf, const int16_t* stereoBuf, int32_t samplesPerChannel);
+
 uint64_t Resample_s16(const int16_t *input, int16_t *output, int32_t inSampleRate, int32_t outSampleRate, uint64_t inputSize,
                       uint32_t channels);
 short FloatS16ToS16(float v);

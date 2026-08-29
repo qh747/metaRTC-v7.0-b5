@@ -5,27 +5,18 @@
 #include <yangaudiodev/YangAudioCapture.h>
 #include <yangutil/sys/YangLog.h>
 
-
-YangAudioCapture::YangAudioCapture()
-{
-	aIndex=0;
-	m_isStart=yangfalse;
-
+YangAudioCapture::YangAudioCapture() {
+	m_isStart = yangfalse;
 }
 
-YangAudioCapture::~YangAudioCapture()
-{
-
+void YangAudioCapture::run() {
+	m_isStart = 1;
+	this->startLoop();
+	m_isStart = 0;
 }
 
-
-void YangAudioCapture::run(){
-	m_isStart=1;
-	startLoop();
-	m_isStart=0;
-}
-void YangAudioCapture::stop(){
-	stopLoop();
+void YangAudioCapture::stop() {
+	this->stopLoop();
 }
 
 

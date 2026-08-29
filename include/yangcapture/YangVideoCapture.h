@@ -11,7 +11,6 @@
 #include <yangutil/sys/YangThread2.h>
 #include <yangutil/yangavinfotype.h>
 
-
 void yang_get_camera_indexs(std::vector<int>* pvs, std::string camIdx);
 
 class YangVideoCapture : public YangThread {
