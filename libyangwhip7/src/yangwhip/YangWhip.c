@@ -23,7 +23,7 @@ static int32_t yang_whip_getSignal(
 	YangUrlData urlData;
 	memset(&urlData, 0, sizeof(YangUrlData));
 
-	int32_t err = yang_http_url_parse(peer->peerInfo.familyType, url, &urlData);
+	int32_t err = yang_url_parse(peer->peerInfo.familyType, url, &urlData);
 
 	if (err != Yang_Ok) {
 		return err;
@@ -37,7 +37,7 @@ static int32_t yang_whip_getSignal(
 		respBuf,
 		urlData.server,
 		urlData.port, 
-		urlData.stream, 
+		urlData.path, 
 		(uint8_t*)localSdp, 
 		yang_strlen(localSdp)
 	);

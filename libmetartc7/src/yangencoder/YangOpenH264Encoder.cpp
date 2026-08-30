@@ -158,7 +158,7 @@ int32_t YangOpenH264Encoder::encode(YangFrame* pframe, YangEncoderCallback* pcal
 
 	if (m_sendKeyframe == 2) {
 		m_sendKeyframe = 0;
-		yang_trace("\nsendkey.frametype=%d\n",	frametype);
+		yang_trace("sendkey.frametype=%d",	frametype);
 	}
 
 	return Yang_Ok;

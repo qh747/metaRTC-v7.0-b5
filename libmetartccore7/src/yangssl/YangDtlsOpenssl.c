@@ -349,7 +349,7 @@ int32_t yang_doHandshake(YangDtlsSession *dtls) {
 
 	if (r1 == SSL_ERROR_NONE) {
         dtls->handshake_done = yangtrue;
-		yang_trace("\ndtls handshake is sucess\n");
+		yang_trace("dtls handshake is sucess");
 	}
 
 	size = BIO_get_mem_data(dtls->bioOut, (char** )&data);

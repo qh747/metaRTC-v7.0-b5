@@ -85,12 +85,7 @@ int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 	int err = Yang_Ok;
 	memset(&m_url, 0, sizeof(m_url));
 
-    if (!isWhip) {
-        err = yang_url_parse(m_context->avinfo.sys.familyType, url,  &m_url);
-    }
-    else {
-        err = yang_http_url_parse(m_context->avinfo.sys.familyType, url, &m_url);
-	}
+	err = yang_url_parse(m_context->avinfo.sys.familyType, url, &m_url);
 
 	if (err != Yang_Ok) {
 		return err;
@@ -103,13 +98,15 @@ int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 	this->stopPublish();
 
 	yang_info(
-		"url: %s, type: %d, ip: %s, port: %d, app: %s, stream: %s",
+		"url: %s, type: %d, ip: %s, port: %d, path: %s, app: %s, stream: %s, param: %s",
         url,
         m_url.netType, 
 		m_url.server, 
 		m_url.port, 
+		m_url.path,
 		m_url.app,
-        m_url.stream
+        m_url.stream,
+		m_url.param
 	);
 
 	if (m_rtcPub == NULL) {

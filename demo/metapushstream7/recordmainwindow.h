@@ -32,7 +32,7 @@ public:
 public:
     virtual void success() {}
     virtual void failure(int32_t errcode);
-    virtual void receiveSysMessage(YangSysMessage* psm, int32_t phandleRet);
+    virtual void receiveSysMessage(YangSysMessage* message, int32_t result);
 
 public:
     void startCapture();
@@ -48,38 +48,30 @@ private:
     void closeAll();
 
 public:
-    YangContext* m_context;
-    YangRecordThread* m_rt;
-
-#if Yang_OS_APPLE
-    YangYuvPlayWidget* m_win0;
-#else
-    YangPlayWidget* m_win0;
-#endif
-
-    QHBoxLayout* m_hb0;
-    int m_videoType;
-    bool m_hasAudio;
-
     YangVideoInfo m_screenInfo;
     YangVideoInfo m_outInfo;
-
+    
+    YangContext* m_context;
     YangSysMessageHandle* m_message;
 
 private:
-    bool m_initRecord;
     Ui::RecordMainWindow* ui;
 
-    int32_t m_isStartpush;
-    bool m_isStartRecord;
-    int32_t m_isVr;
-    bool m_isDrawmouse;
+    bool m_isStartpush;
 
     std::string m_url;
 
-    int32_t m_screenInternal;
     YangJanus m_janus;
-    char m_localIp[64];
+
+    YangRecordThread* m_recThread;
+
+#if Yang_OS_APPLE
+    YangYuvPlayWidget* m_playWidget;
+#else
+    YangPlayWidget* m_playWidget;
+#endif
+
+    QHBoxLayout* m_layout;   
 };
 
 #endif // MAINWINDOW_H

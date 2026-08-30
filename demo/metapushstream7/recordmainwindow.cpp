@@ -73,37 +73,23 @@ RecordMainWindow::RecordMainWindow(QWidget* parent) : QMainWindow(parent), ui(ne
         YangNv12;
 #endif
 
-    m_videoType = Yang_VideoSrc_Camera;
-    m_hasAudio = true;
+    m_isStartpush = false;
 
-    m_isStartpush = 0;
-    m_isStartRecord = false;
-    m_initRecord = false;
+    m_playWidget = NULL;
 
-    m_isDrawmouse = true;
-    m_screenInternal = 33;
-
-    m_win0 = NULL;
-    m_isVr = 0;
-
-    m_hb0 = new QHBoxLayout();
-    ui->vdMain->setLayout(m_hb0);
+    m_layout = new QHBoxLayout();
+    ui->vdMain->setLayout(m_layout);
 
 #if Yang_OS_APPLE
-     m_win0 = new YangYuvPlayWidget(this);
+    m_playWidget = new YangYuvPlayWidget(this);
 #else
-     m_win0 = new YangPlayWidget(this);
+    m_playWidget = new YangPlayWidget(this);
 #endif
 
-    m_hb0->addWidget(m_win0);
-    m_hb0->setSpacing(0);
+    m_layout->addWidget(m_playWidget);
+    m_layout->setSpacing(0);
 
-    memset(m_localIp, 0, sizeof(m_localIp));
-    yang_getLocalInfo(m_context->avinfo.sys.familyType, m_localIp);
-
-    char s[128] = { 0 };
-    sprintf(s, "http://%s:8080/index/api/whip?app=live&stream=test", m_localIp);
-    ui->m_url->setText(s);
+    ui->m_url->setText("http://127.0.0.1:8080/index/api/whip?app=live&stream=test");
 
     memcpy(&m_screenInfo, &m_context->avinfo.video, sizeof(YangVideoInfo));
 
@@ -123,15 +109,20 @@ RecordMainWindow::~RecordMainWindow() {
 
 void RecordMainWindow::failure(int32_t errcode) {
     ui->m_l_err->setText("push error(" + QString::number(errcode) + ")!");
+
+    ui->m_b_rec->setText("start");
+    m_isStartpush = false;
+
+    yang_post_message(YangM_Push_Disconnect, 0, NULL);
 }
 
-void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
-    switch (mss->messageId) {
+void RecordMainWindow::receiveSysMessage(YangSysMessage* message, int32_t result) {
+    switch (message->messageId) {
         case YangM_Push_Connect: {
-            if (err) {
+            if (result) {
                 ui->m_b_rec->setText("开始");
-                m_isStartpush = !m_isStartpush;
-                ui->m_l_err->setText("push error(" + QString::number(err) + ")!");
+                m_isStartpush = false;
+                ui->m_l_err->setText("push error(" + QString::number(result) + ")!");
             }
 
             break;
@@ -140,7 +131,7 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
             break;
         }
         case YangM_Push_StartVideoCapture: {
-            m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
+            m_recThread->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
             break;
         }
     }
@@ -152,8 +143,8 @@ void RecordMainWindow::closeEvent(QCloseEvent* event) {
 }
 
 void RecordMainWindow::initVideoThread(YangRecordThread* recThd) {
-    m_rt = recThd;
-    m_rt->m_playwidget = m_win0;
+    m_recThread = recThd;
+    m_recThread->m_playwidget = m_playWidget;
 }
 
 void RecordMainWindow::closeAll() {
@@ -161,8 +152,8 @@ void RecordMainWindow::closeAll() {
         return;
     }
 
-    m_rt->stopAll();
-    m_rt = NULL;
+    m_recThread->stopAll();
+    m_recThread = NULL;
     
     yang_delete(m_message);
     yang_delete(m_context);
@@ -179,7 +170,7 @@ void RecordMainWindow::on_m_b_rec_clicked() {
         ui->m_l_err->setText("");
         ui->m_b_rec->setText("stop");
 
-        m_isStartpush = !m_isStartpush;
+        m_isStartpush = true;
 
         yang_info("url: %s", ui->m_url->text().toLatin1().data());
         m_url = ui->m_url->text().toLatin1().data();
@@ -189,40 +180,36 @@ void RecordMainWindow::on_m_b_rec_clicked() {
                 YangM_Push_Connect_Whip : 
                 YangM_Push_Connect,
             0,
-            NULL,
+            this,
             (void*)m_url.c_str()
         );
     }
     else {
         ui->m_b_rec->setText("start");
-        m_isStartpush = !m_isStartpush;
+        m_isStartpush = false;
 
         yang_post_message(YangM_Push_Disconnect, 0, NULL);
     }
 }
 
 void RecordMainWindow::on_m_c_whip_clicked() {
-    char s[128] = { 0 };
-
     if (ui->m_c_whip->checkState() == Qt::CheckState::Checked) {
         m_context->avinfo.sys.mediaServer = Yang_Server_Whip_Whep;
-        sprintf(s, "http://%s:8080/index/api/whip?app=live&stream=test", m_localIp);
+        ui->m_url->setText("http://127.0.0.1:8080/index/api/whip?app=live&stream=test");
     }
     else {
         m_context->avinfo.sys.mediaServer = Yang_Server_Zlm;
-        sprintf(s, "webrtc://%s:8080/live/test", m_localIp);
+        ui->m_url->setText("webrtc://127.0.0.1:8080/live/test");
     }
-
-    ui->m_url->setText(s);
 }
 
 void RecordMainWindow::on_m_c_janus_clicked() {
-    char s[128] = { 0 };
-
     if (ui->m_c_janus->checkState() == Qt::CheckState::Checked) {
-        sprintf(s, "http://%s:7080/whip/endpoint/metaRTC", m_localIp);
-        ui->m_url->setText(s);
-
+        ui->m_url->setText("http://127.0.0.1:7080/whip/create");
         m_janus.show();
+    }
+    else {
+        m_janus.hide();
+        this->on_m_c_whip_clicked();
     }
 }
