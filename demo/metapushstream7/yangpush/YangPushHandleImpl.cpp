@@ -87,11 +87,14 @@ int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 
     if (!isWhip) {
         err = yang_url_parse(m_context->avinfo.sys.familyType, url,  &m_url);
-
-		if (err != Yang_Ok) {
-			return err;
-		}
     }
+    else {
+        err = yang_http_url_parse(m_context->avinfo.sys.familyType, url, &m_url);
+	}
+
+	if (err != Yang_Ok) {
+		return err;
+	}
 
 	m_context->avinfo.sys.transType = m_url.netType;
 	m_context->avinfo.audio.audioEncoderType = Yang_AED_OPUS;
@@ -99,8 +102,9 @@ int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 
 	this->stopPublish();
 
-	yang_trace(
-		"\nnetType==%d,server=%s,port=%d,app=%s,stream=%s\n",
+	yang_info(
+		"url: %s, type: %d, ip: %s, port: %d, app: %s, stream: %s",
+        url,
         m_url.netType, 
 		m_url.server, 
 		m_url.port, 

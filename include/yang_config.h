@@ -21,8 +21,6 @@
 #define Yang_Enable_Phtread 1
 #endif
 
-#define Yang_StreamName_Lenght 128
-
 #define Yang_Enable_H265_Encoding 1
 #define Yang_Enable_MJpeg_Encoding 0
 #define Yang_Enable_AV1_Encoding 0

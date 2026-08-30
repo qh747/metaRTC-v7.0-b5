@@ -5,90 +5,95 @@
 #include <yangutil/sys/YangLog.h>
 #include <yangutil/sys/YangSocket.h>
 
-//webrtc://host[:port]/app/stream
-int32_t yang_url_parse(YangIpFamilyType familyType,char* url,YangUrlData* data) {
-	int32_t len;
-	int32_t hostlen;
-	uint32_t  p2;
-	int32_t applen, appnamelen;
-
-	char* end;
-	char* col;
-	char* slash;
-	char *slash2, *slash3 = NULL, *slash4 = NULL;
-
-	char *p = yang_strstr(url, "://");
+int32_t yang_url_parse(YangIpFamilyType familyType, char* url, YangUrlData* data) {
+	const char* p = yang_strstr(url, "://");
 
 	if (!p) {
-		yang_error("Srs Webrt URL: No :// in url!");
+		yang_error("url format error! url: %s", url);
 		return 1;
 	}
 
-	len = (int32_t) (p - url);
+	int32_t len = (int32_t) (p - url);
+
     if (len == 4 && yang_memcmp(url, "rtmp", 4) == 0) {
 		data->netType = Yang_Rtmp;
-		data->port=1935;
-    } else if (len == 6 && yang_memcmp(url, "webrtc", 6) == 0) {
+    } 
+    else if (len == 6 && yang_memcmp(url, "webrtc", 6) == 0) {
         data->netType = Yang_Webrtc;
-        data->port=1985;
-	} else {
+	}
+    else if (len == 4 && yang_memcmp(url, "http", 4) == 0) {
+		data->netType = Yang_Webrtc;
+    } 
+    else if (len == 5 && yang_memcmp(url, "https", 5) == 0) {
+	    data->netType = Yang_Webrtc;
+    }
+    else {
+		yang_error("url format invalid! url: %s", url);
 		return 1;
 	}
+
 	p += 3;
+
 	if (*p == 0) {
-		yang_warn("No hostname in URL!");
+		yang_error("no hostname in url! url: %s", url);
 		return 1;
 	}
 
-	end = p + yang_strlen(p);
-	col = yang_strchr(p, ':');
-	//schar *ques = yang_strchr(p, '?');
-	slash = yang_strchr(p, '/');
+	const char* end = p + yang_strlen(p);
+	const char* col = yang_strchr(p, ':');
+	const char* slash = yang_strchr(p, '/');
 
-	if (slash)
-		hostlen = slash - p;
-	else
-		hostlen = end - p;
-	if (col && col - p < hostlen)
+	int32_t hostlen = (slash != NULL) ? slash - p : end - p;
+
+	if (col && col - p < hostlen) {
 		hostlen = col - p;
-
-	if (hostlen < 256) {
-		 char s1[256]={0};
-		 yang_memcpy(s1,p,hostlen);
-		 yang_memset(data->server,0,sizeof(data->server));
-		 yang_getIp(familyType,s1,data->server);
-
-	} else {
-		yang_warn("Hostname exceeds 255 characters!");
 	}
+
+	if (hostlen > 255) {
+		yang_error("hostname exceeds 255 characters! url: %s", url);
+		return 1;
+	}
+
+	char s1[256] = { 0 };
+	yang_memcpy(s1, p, hostlen);
+
+	yang_memset(data->server, 0, sizeof(data->server));
+	yang_getIp(familyType, s1, data->server);
 
 	p += hostlen;
 
-	if (*p == ':') {
+	if (*p != ':') {
+		yang_error("no port in url! url: %s", url);
+		return 1;
+	}
 
-		p++;
-		p2 = yang_atoi(p);
-		if (p2 > 65535) {
-			yang_warn("Invalid port number!");
-		} else {
-			data->port = p2;
-		}
+	p++;
+
+	data->port = yang_atoi(p);
+
+	if (data->port > 65535) {
+		yang_error("port number invalid! port: %d url: %s", data->port, url);
+		return 1;
 	}
 
 	if (!slash) {
-		yang_warn("No application or playpath in URL!");
+		yang_error("No application or playpath in URL!");
 		return 0;
 	}
+
 	p = slash + 1;
-	//parse app
-	slash2 = yang_strchr(p, '/');
+
+	char *slash2 = yang_strchr(p, '/');
+	char *slash3 = NULL;
+	char *slash4 = NULL;
+
 	if (slash2)
 		slash3 = yang_strchr(slash2 + 1, '/');
 	if (slash3)
 		slash4 = yang_strchr(slash3 + 1, '/');
 
-	applen = end - p; // ondemand, pass all parameters as app
-	appnamelen = applen; // ondemand length
+	int32_t applen = end - p; 
+	int32_t appnamelen = applen;
 	if (slash4)
 		appnamelen = slash4 - p;
 	else if (slash3)
@@ -102,7 +107,6 @@ int32_t yang_url_parse(YangIpFamilyType familyType,char* url,YangUrlData* data) 
 
 	p += appnamelen;
 
-	//parse streamName
 	if (*p == '/')
 		p++;
 
@@ -115,9 +119,7 @@ int32_t yang_url_parse(YangIpFamilyType familyType,char* url,YangUrlData* data) 
 	return Yang_Ok;
 }
 
-
-//http://host[:port]/app/stream
-int32_t yang_http_url_parse(YangIpFamilyType familyType,char* url,YangUrlData* data) {
+int32_t yang_http_url_parse(YangIpFamilyType familyType, char* url, YangUrlData* data) {
 	int32_t len;
 	int32_t hostlen;
 	uint32_t  p2;
@@ -199,111 +201,6 @@ int32_t yang_http_url_parse(YangIpFamilyType familyType,char* url,YangUrlData* d
 	 yang_memset(data->stream,0,sizeof(data->stream));
 	 yang_strcpy(data->stream,p);
 
-
-	return Yang_Ok;
-}
-
-
-//http://host:port/path ws://host:port/path wss://host:port/path
-int32_t yang_ws_url_parse(YangIpFamilyType familyType,char* url,YangUrlData* data) {
-	int32_t len;
-	int32_t hostlen;
-	uint32_t  p2;
-	int32_t applen, appnamelen;
-
-	char* end;
-	char* col;
-	char* slash;
-	char *slash2, *slash3 = NULL, *slash4 = NULL;
-	char *p = yang_strstr(url, "://");
-
-	if (!p) {
-        yang_error("Ws Webrt URL: No :// in url!");
-		return 1;
-	}
-
-	len = (int32_t) (p - url);
-
-    if (len == 2 && yang_memcmp(url, "ws", 2) == 0) {
-		data->netType = Yang_Websocket_Ws;
-		data->port=8088;
-    }else   if (len == 3 && yang_memcmp(url, "wss", 3) == 0) {
-		data->netType = Yang_Websocket_Wss;
-		data->port=8089;
-    }else if (len == 4 && yang_memcmp(url, "http", 4) == 0) {
-		data->netType = Yang_Websocket_Http;
-		data->port=8088;
-    } else if (len == 5 && yang_memcmp(url, "https", 5) == 0) {
-        data->netType = Yang_Websocket_Https;
-        data->port=8089;
-	} else {
-		return 1;
-	}
-
-	p += 3;
-
-	if (*p == 0) {
-		yang_warn("No hostname in URL!");
-		return 1;
-	}
-
-	end = p + yang_strlen(p);
-	col = yang_strchr(p, ':');
-	//schar *ques = yang_strchr(p, '?');
-	slash = yang_strchr(p, '/');
-
-	if (slash)
-		hostlen = slash - p;
-	else
-		hostlen = end - p;
-	if (col && col - p < hostlen)
-		hostlen = col - p;
-
-	if (hostlen < 256) {
-		yang_memset(data->server,0,sizeof(data->server));
-		yang_memcpy(data->server,p, hostlen);
-	} else {
-		yang_warn("Hostname exceeds 255 characters!");
-	}
-
-	p += hostlen;
-
-	if (*p == ':') {
-		p++;
-		p2 = yang_atoi(p);
-		if (p2 > 65535) {
-			yang_warn("Invalid port number!");
-		} else {
-			data->port = p2;
-		}
-	}
-
-	if (!slash) {
-		yang_warn("No application or playpath in URL!");
-		return 0;
-	}
-	p = slash + 1;
-	//parse app
-	slash2 = yang_strchr(p, '/');
-	if (slash2)
-		slash3 = yang_strchr(slash2 + 1, '/');
-	if (slash3)
-		slash4 = yang_strchr(slash3 + 1, '/');
-
-	applen = end - p; // ondemand, pass all parameters as app
-	appnamelen = applen; // ondemand length
-
-	if (slash4)
-		appnamelen = slash4 - p;
-	else if (slash3)
-		appnamelen = slash3 - p;
-	else if (slash2)
-		appnamelen = slash2 - p;
-
-	applen = appnamelen;
-
-	yang_memset(data->app,0,sizeof(data->app));
-	yang_memcpy(data->app,p,applen);
 
 	return Yang_Ok;
 }

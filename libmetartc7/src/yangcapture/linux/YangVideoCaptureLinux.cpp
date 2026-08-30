@@ -73,7 +73,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    sprintf(devStr, "/dev/video%d", m_camIdx);
     
 	    if ((m_devFd = open(devStr, O_RDWR)) == -1) {
-	    	yang_error("open video device Error!");
+	    	yang_error("open video device error!");
 	    	return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
 	}
@@ -92,11 +92,11 @@ int32_t YangVideoCaptureLinux::init() {
         struct v4l2_capability cap;
          
 	    if (ioctl(m_devFd, VIDIOC_QUERYCAP, &cap) != 0) {
-	    	yang_error("\n VIDIOC_QUERYCAP error!");
+	    	yang_error("set video driver param error!");
 	    	return ERROR_SYS_Linux_NoVideoDriver;
 	    }
     
-	    yang_trace("\ndriver name %s card = %s cap = %0x\n", cap.driver, cap.card, cap.capabilities);
+	    yang_trace("driver name %s card = %s cap = %0x", cap.driver, cap.card, cap.capabilities);
         
 	    // 枚举所有像素格式
         YangColorSpace matchFormat = YangI420;
@@ -164,7 +164,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    }
 
 		if (!isMatchFormat) {
-			yang_error("no match format!");
+			yang_error("no match video format!");
 			return ERROR_SYS_Linux_NoVideoCatpureInterface;
 		}
 
@@ -197,7 +197,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    }
     
 	    if ((ioctl(m_devFd, VIDIOC_S_FMT, &v4_format)) != 0) {
-	    	yang_error("\n set fmt error!");
+	    	yang_error("set video format error!");
 	    	return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
 
@@ -236,7 +236,7 @@ int32_t YangVideoCaptureLinux::init() {
 	    tV4L2_reqbuf.memory = V4L2_MEMORY_MMAP;
     
 	    if (ioctl(m_devFd, VIDIOC_REQBUFS, &tV4L2_reqbuf)) {
-			yang_error("VIDIOC_REQBUFS");
+			yang_error("request video buffer error!");
 			return ERROR_SYS_Linux_VideoDeveceOpenFailure;
 	    }
 
@@ -283,7 +283,7 @@ void YangVideoCaptureLinux::stopCapture() {
 
 	type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (-1 == ioctl(m_devFd, VIDIOC_STREAMOFF, &type)) {
-		yang_error("Fail to ioctl 'VIDIOC_STREAMOFF'");
+		yang_error("stop video stream error!");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -298,7 +298,7 @@ void YangVideoCaptureLinux::stopCamDev() {
 	}
 
 	if (-1 == close(m_devFd)) {
-		yang_error("Fail to close fd");
+		yang_error("close video device error!");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -314,14 +314,14 @@ void YangVideoCaptureLinux::startLoop() {
 		tV4L2buf.index = idx;
 
 		if (ioctl(m_devFd, VIDIOC_QBUF, &tV4L2buf)) {
-			yang_error("VIDIOC_QBUF");
+			yang_error("put video buffer error!");
 		}
 	}
     
 	// 让摄像头开始采集视频流
 	enum v4l2_buf_type v4l2type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (ioctl(m_devFd, VIDIOC_STREAMON, &v4l2type)) {
-		yang_error("VIDIOC_STREAMON");
+		yang_error("start video stream error!");
 	}
 
 	fd_set fds;
@@ -346,11 +346,11 @@ void YangVideoCaptureLinux::startLoop() {
 		    		continue;
 		    	}
     
-		    	yang_error("video capture failed to select");
+		    	yang_error("video capture select error!");
 		    	exit(EXIT_FAILURE);
 		    }
             else if (0 == r) {
-		    	yang_error("video capture select Timeout\n");
+		    	yang_error("video capture select timeout!");
 		    	exit(EXIT_FAILURE);
 		    }
 		}
@@ -365,7 +365,7 @@ void YangVideoCaptureLinux::startLoop() {
             
 	        // 从驱动取出已填满的缓冲区
 	        if (ioctl(m_devFd, VIDIOC_DQBUF, &buffer) != 0) {
-	        	yang_error("VIDIOC_DQBUF");
+	        	yang_error("get video buffer error!");
 	        	exit(1);
 	        }
             
@@ -394,7 +394,7 @@ void YangVideoCaptureLinux::startLoop() {
         
 	        // 将已处理完的缓冲区重新递交给驱动
 	        if (ioctl(m_devFd, VIDIOC_QBUF, &buffer) != 0) {
-	        	yang_error("VIDIOC_QBUF");
+	        	yang_error("put video buffer error!");
 	        	exit(1);
 	        }
 		}

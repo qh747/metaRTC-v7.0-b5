@@ -1,7 +1,6 @@
 ﻿//
 // Copyright (c) 2019-2022 yanggaofeng
 //
-#include <QDebug>
 #include <QSettings>
 
 #if (QT_VERSION < QT_VERSION_CHECK(6,0,0))
@@ -134,6 +133,7 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
                 m_isStartpush = !m_isStartpush;
                 ui->m_l_err->setText("push error(" + QString::number(err) + ")!");
             }
+
             break;
         }
         case YangM_Push_Disconnect: {
@@ -141,10 +141,6 @@ void RecordMainWindow::receiveSysMessage(YangSysMessage* mss, int32_t err) {
         }
         case YangM_Push_StartVideoCapture: {
             m_rt->m_videoBuffer = YangPushFactory::GetPreVideoBuffer(m_message);
-            
-            qDebug() << "message===" << m_message 
-                     << "..prevideobuffer===" << m_rt->m_videoBuffer 
-                     << "....ret====" << err;
             break;
         }
     }
@@ -185,7 +181,7 @@ void RecordMainWindow::on_m_b_rec_clicked() {
 
         m_isStartpush = !m_isStartpush;
 
-        qDebug() << "url=========" << ui->m_url->text().toLatin1().data();
+        yang_info("url: %s", ui->m_url->text().toLatin1().data());
         m_url = ui->m_url->text().toLatin1().data();
 
         yang_post_message(
@@ -200,6 +196,7 @@ void RecordMainWindow::on_m_b_rec_clicked() {
     else {
         ui->m_b_rec->setText("start");
         m_isStartpush = !m_isStartpush;
+
         yang_post_message(YangM_Push_Disconnect, 0, NULL);
     }
 }
@@ -210,7 +207,6 @@ void RecordMainWindow::on_m_c_whip_clicked() {
     if (ui->m_c_whip->checkState() == Qt::CheckState::Checked) {
         m_context->avinfo.sys.mediaServer = Yang_Server_Whip_Whep;
         sprintf(s, "http://%s:8080/index/api/whip?app=live&stream=test", m_localIp);
-
     }
     else {
         m_context->avinfo.sys.mediaServer = Yang_Server_Zlm;
