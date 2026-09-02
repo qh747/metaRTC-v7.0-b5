@@ -46,9 +46,9 @@ void YangAudioEncoderHandleCb::run() {
 void YangAudioEncoderHandleCb::init() {
 	if (m_isInit)
 		return;
-	YangEncoderFactory ydf;
+
 	if (!m_enc)
-		m_enc = ydf.createAudioEncoder(m_context);
+		m_enc = YangEncoderFactory::CreateAudioEncoder(m_context);
 	m_enc->init(m_context);
 	m_isInit = 1;
 

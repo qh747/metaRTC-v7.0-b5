@@ -21,51 +21,38 @@ public:
     virtual void sendRequest(int32_t uid, uint32_t ssrc, YangRequestType type);
 
 public:
-	void startCamera();
-	void stopCamera();
-
-	void stopAll();
+	/**
+	 * @brief 将编码后的数据缓冲区传递到RTC网络层
+	 * @param rtcPub RTC网络层实例
+	 */
+	void setRtcNetBuffer(YangRtcPublish* rtcPub);
     
-	void setRtcNetBuffer(YangRtcPublish* prr);
-
+	/**
+	 * @brief 将编码后的数据缓冲区传递给实时本地预览
+	 * @return 预编码后的数据缓冲区
+	 */
 	YangVideoBuffer* getPreVideoBuffer();
-	YangVideoBuffer* getOutPreVideoBuffer();
-	YangVideoBuffer* getOutVideoBuffer();
-
-	void initAudioEncoding();
-	void initVideoEncoding();
-
-	int32_t startAudioCapture();
-	int32_t startVideoCapture();
 
 	void startAudioEncoding();
 	void startVideoEncoding();
 
-	void deleteVideoEncoding();
-
-	void startAudioCaptureState();
-	void startVideoCaptureState();
+	int32_t startAudioCapture();
+	int32_t startVideoCapture();
 
 	void stopAudioCaptureState();
 	void stopVideoCaptureState();
 	
 private:
-	YangVideoBuffer* m_outVideoBuffer;
-	YangVideoBuffer* m_outPreVideoBuffer;
-
 	YangContext* m_context;
 
 	YangPushEncoder* m_encoder;
 	YangPushCapture* m_capture;
 
-	YangVideoInfo* m_videoInfo;
+	bool isAudioEncode;
+	bool isVideoEncode;
 
-	bool isStartAudioCapture;
-	bool isStartVideoCapture;
-	bool isStartScreenCapture;
-
-	bool isStartAudioEncoder;
-	bool isStartVideoEncoder;
+	bool isAudioCapture;
+	bool isVideoCapture;
 };
 
 #endif // YangPushPublish_H

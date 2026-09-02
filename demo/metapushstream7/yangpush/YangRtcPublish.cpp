@@ -21,6 +21,7 @@ YangRtcPublish::YangRtcPublish(YangContext* context) {
 	m_isInLoop = 0;
 
 	m_meta = NULL;
+	m_peerConn = NULL;
 }
 
 YangRtcPublish::~YangRtcPublish() {
@@ -186,7 +187,7 @@ void YangRtcPublish::run() {
 	m_isStart = 0;
 }
 
-int32_t YangRtcPublish::init(char* url, yangbool isWhip) {
+int32_t YangRtcPublish::init(const char* url, yangbool isWhip) {
     YangPeerInfo info;
     yang_avinfo_initPeerInfo(&info, &m_context->avinfo);
 

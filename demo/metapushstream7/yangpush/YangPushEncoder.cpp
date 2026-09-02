@@ -4,106 +4,111 @@
 #include <yangpush/YangPushEncoder.h>
 #include <yangencoder/YangEncoderFactory.h>
 
-YangPushEncoder::YangPushEncoder(YangContext *pcontext) {
-	m_ae=NULL;
-	m_ve=NULL;
-	m_out_videoBuffer = NULL;
-	m_out_auidoBuffer = NULL;
+YangPushEncoder::YangPushEncoder(YangContext* context) {
+	m_context = context;
 
-	m_context = pcontext;
-	m_videoInfo=&pcontext->avinfo.video;
-	m_vmd = NULL;
+	m_audioEncoder = NULL;
+	m_videoEncoder = NULL;
+
+	m_outVideoBuffer = NULL;
+	m_outAudioBuffer = NULL;
+
+	m_videoMeta = NULL;
 }
 
 YangPushEncoder::~YangPushEncoder() {
-	stopAll();
-	yang_stop_thread(m_ae);
-	yang_stop_thread(m_ve);
+	yang_stop(m_audioEncoder);
+	yang_stop(m_videoEncoder);
 
-	yang_delete(m_ae);
-	yang_delete(m_ve);
+	yang_stop_thread(m_audioEncoder);
+	yang_stop_thread(m_videoEncoder);
 
-	yang_delete(m_out_videoBuffer);	//=NULL;
-	yang_delete(m_out_auidoBuffer);	//=NULL;
+	yang_delete(m_audioEncoder);
+	yang_delete(m_videoEncoder);
 
-	yang_free(m_vmd);
+	yang_delete(m_outVideoBuffer);
+	yang_delete(m_outAudioBuffer);
+
+	yang_free(m_videoMeta);
 	m_context = NULL;
 }
-void YangPushEncoder::stopAll() {
-	yang_stop(m_ae);
-	yang_stop(m_ve);
 
-}
-
-void YangPushEncoder::deleteVideoEncoder(){
-	yang_stop(m_ve);
-	yang_stop_thread(m_ve);
-	yang_delete(m_ve);
-	yang_free(m_vmd);
-	m_vmd=NULL;
-}
-YangVideoMeta* YangPushEncoder::getOutVideoMetaData() {
-	return m_vmd;
-}
-void YangPushEncoder::setVideoInfo(YangVideoInfo* pvideo){
-	if(pvideo) m_videoInfo=pvideo;
-}
 void YangPushEncoder::initAudioEncoder() {
-	if (m_out_auidoBuffer == NULL)
-		m_out_auidoBuffer = new YangAudioEncoderBuffer(m_context->avinfo.audio.audioCacheNum);
-	if (m_ae == NULL) {
-		//	YangEncoderFactory yf;
-		m_ae = new YangAudioEncoderHandle(&m_context->avinfo.audio);
-		m_ae->setOutAudioBuffer(m_out_auidoBuffer);
-		m_ae->init();
+	if (m_outAudioBuffer == NULL) {
+        m_outAudioBuffer = new YangAudioEncoderBuffer(m_context->avinfo.audio.audioCacheNum);
+	}   
+	
+	if (m_audioEncoder == NULL) {
+		m_audioEncoder = new YangAudioEncoderHandle(&m_context->avinfo.audio);
+
+		m_audioEncoder->setOutAudioBuffer(m_outAudioBuffer);
+		m_audioEncoder->init();
+	}
+}
+
+void YangPushEncoder::initVideoEncoder() {
+	if (m_outVideoBuffer == NULL) {
+		m_outVideoBuffer = new YangVideoEncoderBuffer(m_context->avinfo.video.evideoCacheNum);
 	}
 
-}
-void YangPushEncoder::initVideoEncoder() {
-	if (m_out_videoBuffer == NULL)
-		m_out_videoBuffer = new YangVideoEncoderBuffer(m_context->avinfo.video.evideoCacheNum);
-	if(m_context&&m_context->avinfo.enc.createMeta){
-		if (m_vmd == NULL)	m_vmd = (YangVideoMeta*) calloc(1, sizeof(YangVideoMeta));
-		YangEncoderFactory fac;
-		YangVideoEncoderMeta *yvh = fac.createVideoEncoderMeta(m_videoInfo);
-		yvh->yang_initVmd(m_vmd, m_videoInfo,&m_context->avinfo.enc);
-		yang_delete(yvh);
+	if (m_context && m_context->avinfo.enc.createMeta) {
+		if (m_videoMeta == NULL) {
+  		    m_videoMeta = (YangVideoMeta*) calloc(1, sizeof(YangVideoMeta));
+		}
+
+		YangVideoEncoderMeta* meta = YangEncoderFactory::CreateVideoEncoderMeta(
+			&(m_context->avinfo.video)
+		);
+
+		meta->yang_initVmd(
+			m_videoMeta, 
+			&(m_context->avinfo.video),
+			&m_context->avinfo.enc
+		);
+
+		yang_delete(meta);
 	}
-	if (m_ve == NULL) {
-		//	YangEncoderFactory yf;
-		m_ve = new YangVideoEncoderHandle(m_context,m_videoInfo);
-		m_ve->setOutVideoBuffer(m_out_videoBuffer);
-		m_ve->init();
-		m_ve->setVideoMetaData(m_vmd);
+	
+	if (m_videoEncoder == NULL) {
+		m_videoEncoder = new YangVideoEncoderHandle(
+			m_context,&(m_context->avinfo.video)
+		);
+		
+		m_videoEncoder->setOutVideoBuffer(m_outVideoBuffer);
+		m_videoEncoder->init();
+		m_videoEncoder->setVideoMetaData(m_videoMeta);
 	}
 }
+
 void YangPushEncoder::sendMsgToEncoder(YangRequestType req){
-	if(m_ve) m_ve->sendMsgToEncoder(req);
+	if (m_videoEncoder) {
+		m_videoEncoder->sendMsgToEncoder(req);
+	}
 }
+
 void YangPushEncoder::startAudioEncoder() {
-	if (m_ae && !m_ae->m_isStart) {
-		m_ae->start();
+	if (m_audioEncoder && !m_audioEncoder->m_isStart) {
+		m_audioEncoder->start();
 		yang_usleep(1000);
 	}
 }
+
 void YangPushEncoder::startVideoEncoder() {
-	if (m_ve && !m_ve->m_isStart) {
-		m_ve->start();
+	if (m_videoEncoder && !m_videoEncoder->m_isStart) {
+		m_videoEncoder->start();
 		yang_usleep(2000);
 	}
 }
-void YangPushEncoder::setInAudioBuffer(YangAudioBuffer *pbuf) {
-	if (m_ae != NULL)
-		m_ae->setInAudioBuffer(pbuf);
+
+void YangPushEncoder::setInAudioBuffer(YangAudioBuffer* buf) {
+	if (m_audioEncoder != NULL) {
+	    m_audioEncoder->setInAudioBuffer(buf);
+	}
 }
-void YangPushEncoder::setInVideoBuffer(YangVideoBuffer *pbuf) {
-	if (m_ve != NULL)
-		m_ve->setInVideoBuffer(pbuf);
-}
-YangAudioEncoderBuffer* YangPushEncoder::getOutAudioBuffer() {
-	return m_out_auidoBuffer;
-}
-YangVideoEncoderBuffer* YangPushEncoder::getOutVideoBuffer() {
-	return m_out_videoBuffer;
+
+void YangPushEncoder::setInVideoBuffer(YangVideoBuffer* buf) {
+	if (m_videoEncoder != NULL) {
+		m_videoEncoder->setInVideoBuffer(buf);
+	}
 }
 

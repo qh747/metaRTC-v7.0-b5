@@ -107,7 +107,6 @@ SOURCES += \
     video/YangPlayWidget.cpp \
     video/YangYuvPlayWidget.cpp \
     video/yangrecordthread.cpp \
-    video/yangrecordvideowin.cpp \
     yangjanus.cpp \
     yangpush/YangPushCapture.cpp \
     yangpush/YangPushEncoder.cpp \
@@ -124,8 +123,6 @@ HEADERS += \
     video/YangPlayWidget.h \
     video/YangYuvPlayWidget.h \
     video/yangrecordthread.h \
-    video/yangrecordvideowin.h \
-    video/yangvideotype.h \
     yangjanus.h \
     yangpush/YangPushEncoder.h \
     yangpush/YangPushHandleImpl.h \

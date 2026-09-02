@@ -3,16 +3,16 @@
 //
 #ifndef YANGENCODER_INCLUDE_YANGENCODER_H_
 #define YANGENCODER_INCLUDE_YANGENCODER_H_
-#include <stdint.h>
+
+#include <yangutil/yangavinfo.h>
+
 class YangEncoderCallback{
 public:
-	YangEncoderCallback(){};
-	virtual ~YangEncoderCallback(){};
-	virtual void onVideoData(YangFrame* pframe)=0;
-	virtual void onAudioData(YangFrame* pframe)=0;
+	virtual ~YangEncoderCallback() {};
+
+public:
+	virtual void onVideoData(YangFrame* frame) = 0;
+	virtual void onAudioData(YangFrame* frame) = 0;
 };
 
-
-
-
-#endif /* YANGENCODER_INCLUDE_YANGENCODER_H_ */
+#endif // YANGENCODER_INCLUDE_YANGENCODER_H_

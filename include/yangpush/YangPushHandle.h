@@ -16,7 +16,7 @@ public:
     virtual ~YangPushHandle() = default;
 
 public:
-    virtual int publish(char* url, yangbool isWhip) = 0;
+    virtual int publish(const char* url, yangbool isWhip) = 0;
     virtual void disconnect() = 0;
 
     virtual void init() = 0;

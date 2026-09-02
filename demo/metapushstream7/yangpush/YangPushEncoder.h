@@ -17,37 +17,32 @@ public:
 	virtual ~YangPushEncoder();
 
 public:
-	void setVideoInfo(YangVideoInfo* info);
-
 	void initVideoEncoder();
 	void initAudioEncoder();
 
 	void startAudioEncoder();
 	void startVideoEncoder();
 
-	void setInAudioBuffer(YangAudioBuffer* pal);
-	void setInVideoBuffer(YangVideoBuffer* pvl);
+	void setInAudioBuffer(YangAudioBuffer* audioBuffer);
+	void setInVideoBuffer(YangVideoBuffer* videoBuffer);
 
-	YangAudioEncoderBuffer * getOutAudioBuffer();
-	YangVideoEncoderBuffer * getOutVideoBuffer();
+	void sendMsgToEncoder(YangRequestType type);
 
-	YangVideoMeta * getOutVideoMetaData();
-
-	void stopAll();
-	void sendMsgToEncoder(YangRequestType req);
-
-	void deleteVideoEncoder();
+public:
+	inline YangAudioEncoderBuffer* getOutAudioBuffer() { return m_outAudioBuffer; }
+	inline YangVideoEncoderBuffer* getOutVideoBuffer() { return m_outVideoBuffer; }
+	inline YangVideoMeta* getOutVideoMetaData() { return m_videoMeta; }
 
 private:
-	YangVideoEncoderHandle* m_ve;
-	YangAudioEncoderHandle* m_ae;
+    YangContext* m_context;
 
-	YangAudioEncoderBuffer* m_out_auidoBuffer;
-	YangVideoEncoderBuffer* m_out_videoBuffer;
+	YangVideoEncoderHandle* m_videoEncoder;
+	YangAudioEncoderHandle* m_audioEncoder;
 
-	YangContext* m_context;
-	YangVideoMeta* m_vmd;
-	YangVideoInfo* m_videoInfo;
+	YangAudioEncoderBuffer* m_outAudioBuffer;
+	YangVideoEncoderBuffer* m_outVideoBuffer;
+	
+	YangVideoMeta* m_videoMeta;
 };
 
 #endif // YANGAPP_YANGENCODERAPP_H_

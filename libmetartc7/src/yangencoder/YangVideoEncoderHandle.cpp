@@ -96,8 +96,7 @@ void YangVideoEncoderHandle::startLoop() {
 	if (m_out_videoBuffer != NULL)
 		m_out_videoBuffer->resetIndex();
 
-	YangEncoderFactory ydf;
-	YangVideoEncoder *t_Encoder = ydf.createVideoEncoder(m_videoInfo);
+	YangVideoEncoder *t_Encoder = YangEncoderFactory::CreateVideoEncoder(m_videoInfo);
 
 	t_Encoder->init(m_context,m_videoInfo);
 	t_Encoder->setVideoMetaData(m_vmd);

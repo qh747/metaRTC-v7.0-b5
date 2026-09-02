@@ -3,49 +3,42 @@
 //
 #ifndef __YangAudioEncoderrHandle__
 #define __YangAudioEncoderrHandle__
+
 #include <yangutil/sys/YangThread2.h>
 #include <yangutil/buffer/YangAudioEncoderBuffer.h>
 #include <yangutil/buffer/YangAudioPlayBuffer.h>
 #include <yangencoder/YangAudioEncoder.h>
-#include <vector>
 
-
-using namespace std;
-class YangAudioEncoderHandle:public YangThread,public YangEncoderCallback
-{
+class YangAudioEncoderHandle : public YangThread, public YangEncoderCallback {
 public:
-	YangAudioEncoderHandle(YangAudioInfo *pcontext);
-	~YangAudioEncoderHandle(void);
-
-private:
-	int32_t m_isInit;
+	YangAudioEncoderHandle(YangAudioInfo* info);
+	virtual ~YangAudioEncoderHandle();
 
 public:
 	void init();
-	void stop();
-	void setInAudioBuffer(YangAudioBuffer *pbuf);
-	void setOutAudioBuffer(YangAudioEncoderBuffer *pbuf);
 
-	void onVideoData(YangFrame* pframe);
-	void onAudioData(YangFrame* pframe);
-	int32_t m_isStart;
-	int32_t m_uid;
+	void setInAudioBuffer(YangAudioBuffer* buf);
+	void setOutAudioBuffer(YangAudioEncoderBuffer* buf);
 
+	virtual void stop();
 
+	virtual void onVideoData(YangFrame* frame);
+	virtual void onAudioData(YangFrame* frame);
+	
+private:
+	virtual void run();
 
-protected:
-	void run();
-	void stopLoop();
-	void startLoop();
+public:
+    int32_t m_isStart;
 
 private:
-
-	YangAudioEncoder *m_enc;
 	int32_t m_isConvert;
+
+	YangAudioInfo* m_info;
+	YangAudioEncoder* m_enc;
+	
 	YangAudioBuffer *m_in_audioBuffer;
 	YangAudioEncoderBuffer *m_out_audioBuffer;
-	YangAudioInfo *m_context;
-	void Encoder(int32_t isIframe,uint8_t*src,int32_t  p_buflen,uint8_t *dest,int32_t *p_destLen);
-
 };
-#endif
+
+#endif // __YangAudioEncoderrHandle__

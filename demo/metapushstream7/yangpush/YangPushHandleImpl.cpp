@@ -1,30 +1,26 @@
 ﻿//
 // Copyright (c) 2019-2022 yanggaofeng
 //
-#include <yangpush/YangPushHandleImpl.h>
+
 #include <yangutil/sys/YangLog.h>
 #include <yangutil/sys/YangUrl.h>
+#include <yangutil/sys/YangUrl.h>
+#include <yangpush/YangPushHandleImpl.h>
 
 YangPushHandleImpl::YangPushHandleImpl(
 	bool hasAudio,
-	bool initVideo,
-	YangVideoInfo* screenVideo,
 	YangVideoInfo* outVideo,
 	YangContext* context,
 	YangSysMessageI* message) {
 
-	m_rtcPub = NULL;
-	m_screenInfo = screenVideo;
 	m_outInfo = outVideo;
 	m_context = context;
 	m_message = message;
 
-	m_cap = new YangPushPublish(m_context);
-
 	m_hasAudio = hasAudio;
-	m_isInit = initVideo;
 
-	this->init();
+	m_rtcPub = NULL;
+	m_pushPub = new YangPushPublish(m_context);
 }
 
 YangPushHandleImpl::~YangPushHandleImpl() {
@@ -32,102 +28,78 @@ YangPushHandleImpl::~YangPushHandleImpl() {
 		m_rtcPub->disConnect();
 	}
 
-	m_cap->stopAll();
-
 	yang_delete(m_rtcPub);
-	yang_delete(m_cap);
+	yang_delete(m_pushPub);
 }
 
 void YangPushHandleImpl::disconnect() {
-	if (m_cap) {
-		if (m_hasAudio) {
-			m_cap->stopAudioCaptureState();
-		}
-		
-		m_cap->stopVideoCaptureState();
+	if (m_rtcPub) {
+		m_rtcPub->disConnect();
+
+		yang_stop(m_rtcPub);
+	    yang_stop_thread(m_rtcPub);
+	    yang_delete(m_rtcPub);
 	}
 
-	this->stopPublish();
+	if (m_pushPub) {
+		if (m_hasAudio) {
+			m_pushPub->stopAudioCaptureState();
+		}
+		
+		m_pushPub->stopVideoCaptureState();
+	}
 }
 
 void YangPushHandleImpl::init() {
-	if(m_isInit) {
-		return;
-	}
-
 	this->changeSrc(Yang_VideoSrc_Camera);
-	m_isInit = true;
 }
 
 void YangPushHandleImpl::changeSrc(int videoType) {
 	if (videoType == Yang_VideoSrc_Camera) {
-		m_cap->startCamera();
+		m_pushPub->startVideoCapture();
 	}
-}
-
-void YangPushHandleImpl::stopPublish() {
-	if (m_rtcPub) {
-		m_rtcPub->disConnect();
-	}
-
-	yang_stop(m_rtcPub);
-	yang_stop_thread(m_rtcPub);
-	yang_delete(m_rtcPub);
-	
-	m_cap->deleteVideoEncoding();
 }
 
 YangVideoBuffer* YangPushHandleImpl::getPreVideoBuffer() {
-	return m_cap->getPreVideoBuffer();
+	return m_pushPub->getPreVideoBuffer();
 }
 
-int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
-	int err = Yang_Ok;
-	memset(&m_url, 0, sizeof(m_url));
+int YangPushHandleImpl::publish(const char* url, yangbool isWhip) {
+    if (m_rtcPub != NULL) {
+		yang_warn("already published!");
+        return 1;
+    }
 
-	err = yang_url_parse(m_context->avinfo.sys.familyType, url, &m_url);
+	YangUrlData urlData;
+	memset(&urlData, 0, sizeof(urlData));
+
+	int err = yang_url_parse(m_context->avinfo.sys.familyType, url, &urlData);
 
 	if (err != Yang_Ok) {
 		return err;
 	}
 
-	m_context->avinfo.sys.transType = m_url.netType;
-	m_context->avinfo.audio.audioEncoderType = Yang_AED_OPUS;
-	m_context->avinfo.audio.sample = 48000;
-
-	this->stopPublish();
-
 	yang_info(
 		"url: %s, type: %d, ip: %s, port: %d, path: %s, app: %s, stream: %s, param: %s",
         url,
-        m_url.netType, 
-		m_url.server, 
-		m_url.port, 
-		m_url.path,
-		m_url.app,
-        m_url.stream,
-		m_url.param
+        urlData.netType, 
+		urlData.server, 
+		urlData.port, 
+		urlData.path,
+		urlData.app,
+        urlData.stream,
+		urlData.param
 	);
 
-	if (m_rtcPub == NULL) {
-		m_rtcPub = new YangRtcPublish(m_context);
+	m_rtcPub = new YangRtcPublish(m_context);
+
+	if (m_hasAudio && m_pushPub->startAudioCapture() == Yang_Ok) {
+		m_pushPub->startAudioEncoding();
 	}
 
-	if (m_hasAudio && m_cap->startAudioCapture() == Yang_Ok) {
-	    m_cap->initAudioEncoding();
-	}
-	else {
-		m_hasAudio = false;
-	}
+	m_pushPub->startVideoEncoding();
 
-	m_cap->initVideoEncoding();
-	m_cap->setRtcNetBuffer(m_rtcPub);
-
-	if (m_hasAudio) {
-        m_cap->startAudioEncoding();
-	}
-		
-	m_cap->startVideoEncoding();
+	m_pushPub->setRtcNetBuffer(m_rtcPub);
 
     err = m_rtcPub->init(url, isWhip);
 
@@ -136,12 +108,6 @@ int YangPushHandleImpl::publish(char* url, yangbool isWhip) {
 	}
                 
 	m_rtcPub->start();
-
-	if (m_hasAudio) {
-		m_cap->startAudioCaptureState();
-	}
-		
-	m_cap->startVideoCaptureState();
 	return err;
 }
 

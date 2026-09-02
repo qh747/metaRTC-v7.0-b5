@@ -10,8 +10,8 @@
 extern "C"{
 #endif
 
-int32_t yang_whip_connectWhipWhepServer(YangPeer* peer, char* url);
-int32_t yang_whip_connectSfuServer(YangPeer* peer, char* url, int32_t mediaServer);
+int32_t yang_whip_connectWhipWhepServer(YangPeer* peer, const char* url);
+int32_t yang_whip_connectSfuServer(YangPeer* peer, const char* url, int32_t mediaServer);
 
 #ifdef __cplusplus
 }

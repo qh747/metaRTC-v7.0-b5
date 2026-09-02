@@ -18,14 +18,8 @@ YangPushMessageHandle::YangPushMessageHandle(
 	m_context = context;
 	m_receive = messageHandle;
 
-    m_push = new YangPushHandleImpl(
-		hasAudio,
-		false,
-		screenVideo,
-		outVideo,
-		context,
-		message
-	);
+    m_push = new YangPushHandleImpl(hasAudio, outVideo, context, message);
+	m_push->init();
 }
 
 YangPushMessageHandle::~YangPushMessageHandle() {

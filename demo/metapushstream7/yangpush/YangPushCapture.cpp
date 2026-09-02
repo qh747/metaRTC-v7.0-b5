@@ -22,16 +22,13 @@ YangPushCapture::YangPushCapture(YangContext* context) {
 
 	m_pre_videoBuffer = new YangVideoBuffer(context->avinfo.video.bitDepth == 8 ? 1 : 2);
 	m_pre_videoBuffer->isPreview = 1;
-    
-	m_isStart = 0;
-	m_isConvert = 0;
 }
 
 YangPushCapture::~YangPushCapture() {
 	m_context = NULL;
 
-	this->stopAll();
-	yang_stop_thread(this);
+	yang_stop(m_audioCapture);
+	yang_stop(m_videoCapture);
 
 	yang_stop_thread(m_audioCapture);
 	yang_stop_thread(m_videoCapture);
@@ -56,6 +53,19 @@ void YangPushCapture::startAudioCaptureState() {
 void YangPushCapture::stopAudioCaptureState() {
     if (m_audioCapture) {
 		m_audioCapture->setCatureState(yangfalse);
+	}
+}
+
+void YangPushCapture::startVideoCaptureState() {
+	if (m_videoCapture) {
+		m_videoCapture->initstamp();
+	    m_videoCapture->setVideoCaptureStart();
+	}
+}
+
+void YangPushCapture::stopVideoCaptureState() {
+	if (m_videoCapture) {
+		m_videoCapture->setVideoCaptureStop();
 	}
 }
 
@@ -134,39 +144,4 @@ int32_t YangPushCapture::initVideo() {
 
 	this->stopVideoCaptureState();
 	return Yang_Ok;
-}
-
-void YangPushCapture::stopAll() {
-	this->stop();
-
-	yang_stop(m_audioCapture);
-	yang_stop(m_videoCapture);
-}
-
-void YangPushCapture::startVideoCaptureState() {
-	if (m_videoCapture) {
-		m_videoCapture->initstamp();
-	    m_videoCapture->setVideoCaptureStart();
-	}
-}
-
-void YangPushCapture::stopVideoCaptureState() {
-	if (m_videoCapture) {
-		m_videoCapture->setVideoCaptureStop();
-	}
-}
-
-void YangPushCapture::stop() {
-	m_isConvert = 0;
-}
-
-void YangPushCapture::startCamera() {
-	this->initVideo();
-	this->startVideoCapture();
-}
-
-void YangPushCapture::stopCamera() {
-	yang_stop(m_videoCapture);
-	yang_stop_thread(m_videoCapture);
-	yang_delete(m_videoCapture);
 }

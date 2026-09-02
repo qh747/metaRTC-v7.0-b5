@@ -90,7 +90,7 @@ static int32_t yang_whip_getSignal(
 	return err;
 }
 
-int32_t yang_whip_connectWhipWhepServer(YangPeer* peer, char* url) {
+int32_t yang_whip_connectWhipWhepServer(YangPeer* peer, const char* url) {
 	if (peer == NULL) {
 		return ERROR_RTC_PEERCONNECTION;
     }
@@ -139,7 +139,7 @@ int32_t yang_whip_connectWhipWhepServer(YangPeer* peer, char* url) {
 	return (err != Yang_Ok) ? yang_error_wrap(err,errBuf) : err;
 }
 
-int32_t yang_whip_connectSfuServer(YangPeer* peer, char* url, int32_t mediaServer) {
+int32_t yang_whip_connectSfuServer(YangPeer* peer, const char* url, int32_t mediaServer) {
 	if (peer == NULL) {
 		return ERROR_RTC_PEERCONNECTION;
     }

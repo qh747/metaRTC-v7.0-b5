@@ -13,23 +13,14 @@
 #include <yangavutil/audio/YangRtcAec.h>
 #include <yangutil/buffer/YangAudioPlayBuffer.h>
 
-class YangPushCapture : public YangThread {
+class YangPushCapture {
 public:
 	YangPushCapture(YangContext* context);
 	virtual ~YangPushCapture();
 
 public:
-    virtual void stop();
-
-protected:
-	virtual void run() {}
-
-public:
     int32_t initVideo();
 	int32_t initAudio();
-
-    void startCamera();
-    void stopCamera();
     
 	void startAudioCapture();
 	void startVideoCapture();
@@ -47,8 +38,6 @@ public:
 	inline YangVideoBuffer* getScreenOutVideoBuffer() { return m_screen_out_videoBuffer; }
 	inline YangVideoBuffer* getScreenPreVideoBuffer() { return m_screen_pre_videoBuffer; }
 
-	void stopAll();
-
 private:
 	YangAudioCapture* m_audioCapture;
 	YangVideoCapture* m_videoCapture;
@@ -61,10 +50,6 @@ private:
 
 	YangContext* m_context;
 	YangAudioBuffer* m_out_audioBuffer;
-
-public:
-    int32_t m_isStart;
-	int32_t m_isConvert;
 };
 
 #endif // YANGAPP_YANGCAPTUREAPP_H_

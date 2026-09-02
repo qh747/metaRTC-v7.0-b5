@@ -2,9 +2,7 @@
 // Copyright (c) 2019-2025 yanggaofeng
 //
 #include <yangencoder/YangEncoderFactory.h>
-
 #include <yangencoder/YangAudioEncoderOpus.h>
-
 #include <yangencoder/YangFfmpegEncoderMeta.h>
 #include <yangencoder/YangGpuEncoderFactory.h>
 #include <yangencoder/YangH265EncoderMeta.h>
@@ -20,80 +18,69 @@
 #include <yangencoder/YangH264EncoderSoft.h>
 #endif
 
-YangEncoderFactory::YangEncoderFactory() {
-
+YangAudioEncoder* YangEncoderFactory::CreateAudioEncoder(YangAudioInfo* info) {
+    YangAudioCodec codec = static_cast<YangAudioCodec>(info->audioEncoderType);
+    
+    if (codec == Yang_AED_OPUS) {
+        return new YangAudioEncoderOpus();
+    }
+    else {
+        return NULL;
+    }
 }
 
-YangEncoderFactory::~YangEncoderFactory() {
-
-}
-YangVideoEncoderMeta* YangEncoderFactory::createVideoEncoderMeta(
-        YangVideoInfo *videoInfo) {
-#if Yang_Enable_Ffmpeg_Codec
-    if (videoInfo->videoEncHwType > 0)
-		return new YangFfmpegEncoderMeta();
-#endif
-#if !Yang_Enable_Openh264
-    if(videoInfo->videoEncoderType==0) return new YangH264EncoderMeta();
-#endif
-    if (videoInfo->videoEncoderType == 1)
-		return new YangH265EncoderMeta();
-#if Yang_Enable_Openh264
-	return NULL;
-#else
-	return new YangH264EncoderMeta();
-#endif
-}
-
-YangAudioEncoder* YangEncoderFactory::createAudioEncoder(YangAudioCodec acodec,
-        YangAudioInfo *audioInfo) {
-
-    return new YangAudioEncoderOpus();
-}
-YangAudioEncoder* YangEncoderFactory::createAudioEncoder(
-        YangAudioInfo *audioInfo) {
-
-    YangAudioCodec acodec=(YangAudioCodec)audioInfo->audioEncoderType;
-    return createAudioEncoder(acodec, audioInfo);
-}
-
-YangVideoEncoder* YangEncoderFactory::createVideoEncoder(YangVideoCodec vcodec,YangVideoInfo *videoInfo) {
-
-    if(videoInfo->videoEncHwType==0){
-        if (vcodec == Yang_VED_H264){
-#if Yang_Enable_Openh264
-            return new YangOpenH264Encoder();
-#else
-            return  new YangH264EncoderSoft();
-#endif
-        }else if (vcodec == Yang_VED_H265){
-            return new YangH265EncoderSoft();
-        }
-    }else{
+YangVideoEncoder* YangEncoderFactory::CreateVideoEncoder(YangVideoInfo* info) {
+    // 平台级硬编码优先级最高
 #if Yang_OS_ANDROID
-        return new YangEncoderMediacodec();
+    return new YangEncoderMediacodec();
 #elif Yang_OS_APPLE
-        return new YangVideoEncoderMac();
+    return new YangVideoEncoderMac();
 #elif Yang_OS_WIN
-         YangGpuEncoderFactory gf;
-         return gf.createGpuEncoder();
+    YangGpuEncoderFactory gf;
+    return gf.createGpuEncoder();
+#endif
+
+    YangVideoCodec codec = static_cast<YangVideoCodec>(info->videoEncoderType);
+
+    if (codec == Yang_VED_H264 && info->videoEncHwType == 0) {
+#if Yang_Enable_Openh264
+        return new YangOpenH264Encoder();
+#else
+        return new YangH264EncoderSoft();
 #endif
     }
-
+    else if (codec == Yang_VED_H265 && info->videoEncHwType == 0) {
+        return new YangH265EncoderSoft();
+    }
+    else {
 #if Yang_Enable_Ffmpeg_Codec
-    return new YangVideoEncoderFfmpeg(vcodec, videoInfo->videoEncHwType);
+        return new YangVideoEncoderFfmpeg(codec, info->videoEncHwType);
 #else
-    return NULL;
+        return NULL;
 #endif
+    }
 }
 
+YangVideoEncoderMeta* YangEncoderFactory::CreateVideoEncoderMeta(YangVideoInfo* info) {
+#if Yang_Enable_Ffmpeg_Codec
+    if (info->videoEncHwType > 0) {
+        return new YangFfmpegEncoderMeta();
+    }    
+#endif
 
-YangVideoEncoder* YangEncoderFactory::createVideoEncoder(YangVideoInfo *videoInfo) {
-    YangVideoCodec vcodec = Yang_VED_H264;
-    if (videoInfo->videoEncoderType == 0)
-        vcodec = Yang_VED_H264;
-    if (videoInfo->videoEncoderType == 1)
-        vcodec = Yang_VED_H265;
+    YangVideoCodec codec = static_cast<YangVideoCodec>(info->videoEncoderType);
 
-    return createVideoEncoder(vcodec, videoInfo);
+    if (codec == Yang_VED_H264 && info->videoEncoderType == 0) {
+#if !Yang_Enable_Openh264
+        return new YangH264EncoderMeta();
+#else
+        return NULL;
+#endif
+    }
+    else if (codec == Yang_VED_H265 && info->videoEncoderType == 1) {
+        return new YangH265EncoderMeta();
+    }
+    else {
+        return NULL;
+    }
 }

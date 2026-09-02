@@ -33,8 +33,6 @@ qt_add_executable(metapushstream7 WIN32 MACOSX_BUNDLE
     video/YangPlayWidget.cpp video/YangPlayWidget.h
     video/YangYuvPlayWidget.cpp video/YangYuvPlayWidget.h
     video/yangrecordthread.cpp video/yangrecordthread.h
-    video/yangrecordvideowin.cpp video/yangrecordvideowin.h
-    video/yangvideotype.h
     yangjanus.cpp yangjanus.h yangjanus.ui
     yangpush/YangPushCapture.cpp
     yangpush/YangPushEncoder.cpp yangpush/YangPushEncoder.h

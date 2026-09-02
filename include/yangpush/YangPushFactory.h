@@ -4,7 +4,7 @@
 #ifndef INCLUDE_YANGPUSH_YANGPUSHFACTORY_H_
 #define INCLUDE_YANGPUSH_YANGPUSHFACTORY_H_
 
-#include <yangpush/YangPushHandle.h>
+#include <yangutil/yangavinfotype.h>
 #include <yangpush/YangSendVideoI.h>
 #include <yangutil/sys/YangSysMessageHandle.h>
 

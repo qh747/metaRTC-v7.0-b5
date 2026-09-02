@@ -7,7 +7,6 @@
 #include <QMainWindow>
 #include <QHBoxLayout>
 #include <video/yangrecordthread.h>
-#include <video/yangrecordvideowin.h>
 #include <video/YangPlayWidget.h>
 #include <video/YangYuvPlayWidget.h>
 #include <yangutil/yangavinfotype.h>

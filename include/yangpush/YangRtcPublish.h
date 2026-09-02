@@ -28,7 +28,7 @@ private:
     virtual void run();
 
 public:
-    int32_t init(char* url, yangbool isWhip);
+    int32_t init(const char* url, yangbool isWhip);
 
 	inline void setInVideoMetaData(YangVideoMeta* meta) { m_meta = meta; }
 	inline void setInAudioList(YangAudioEncoderBuffer* buf) { m_audioBuffer = buf; }
