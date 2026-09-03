@@ -2,31 +2,48 @@
 // Copyright (c) 2019-2025 yanggaofeng
 //
 
-#include <yangencoder/YangAudioEncoderOpus.h>
 #include <yangutil/sys/YangLog.h>
+#include <yangencoder/YangAudioEncoderOpus.h>
 
-
+#define MAX_PACKET_SIZE (3 * 1276)
 
 #if Yang_Opus_So
 void YangAudioEncoderOpus::loadLib() {
-	yang_opus_encoder_create = (OpusEncoder* (*)(opus_int32 Fs, int32_t channels,
-			int32_t application, int32_t *error)) m_lib.loadFunction(
-			"opus_encoder_create");
-	yang_opus_encoder_init = (int32_t (*)(OpusEncoder *st, opus_int32 Fs,
-			int32_t channels, int32_t application)) m_lib.loadFunction(
-			"opus_encoder_init");
-	yang_opus_encode =
-			(opus_int32 (*)(OpusEncoder *st, const opus_int16 *pcm,
-					int32_t frame_size, uint8_t *data,
-					opus_int32 max_data_bytes)) m_lib.loadFunction(
-					"opus_encode");
-	yang_opus_encoder_ctl =
-			(int32_t (*)(OpusEncoder *st, int32_t request, ...)) m_lib.loadFunction(
-					"opus_encoder_ctl");
-	yang_opus_encoder_destroy = (void (*)(OpusEncoder *st)) m_lib.loadFunction(
-			"opus_encoder_destroy");
-	yang_opus_strerror = (const char* (*)(int32_t error)) m_lib.loadFunction(
-			"opus_strerror");
+	yang_opus_encoder_create = (OpusEncoder* (*)(
+		opus_int32 Fs, 
+		int32_t channels,
+		int32_t application, 
+		int32_t* error)
+	) m_lib.loadFunction("opus_encoder_create");
+
+	yang_opus_encoder_init = (int32_t (*)(
+		OpusEncoder* st,
+		opus_int32 Fs,
+		int32_t channels, 
+		int32_t application)
+	) m_lib.loadFunction("opus_encoder_init");
+
+	yang_opus_encode = (opus_int32 (*)(
+		OpusEncoder* st, 
+		const opus_int16* pcm,
+		int32_t frame_size, 
+		uint8_t* data,
+		opus_int32 max_data_bytes)
+	) m_lib.loadFunction("opus_encode");
+
+	yang_opus_encoder_ctl = (int32_t (*)(
+		OpusEncoder* st, 
+		int32_t request, 
+		...)
+	) m_lib.loadFunction("opus_encoder_ctl");
+
+	yang_opus_encoder_destroy = (void (*)(
+		OpusEncoder* st)
+	) m_lib.loadFunction("opus_encoder_destroy");
+
+	yang_opus_strerror = (const char* (*)(
+		int32_t error)
+	) m_lib.loadFunction("opus_strerror");
 }
 
 void YangAudioEncoderOpus::unloadLib() {
@@ -38,15 +55,17 @@ void YangAudioEncoderOpus::unloadLib() {
 	yang_opus_strerror = NULL;
 }
 #endif
+
 YangAudioEncoderOpus::YangAudioEncoderOpus() {
-	ret = 0;
-	m_cbits = NULL;
+	m_pcmBuf = NULL;
+	m_pcmFrameSize = 0;
+	
+	m_encInBuf = NULL;
+	m_encInFrameSize = 0;
+
+	m_encOutBuf = NULL;
+
 	m_encoder = NULL;
-	m_input1 = NULL;
-	m_input = NULL;
-	m_in = NULL;
-	m_frameShortSize=0;
-	m_frameSize=0;
 
 #if Yang_Opus_So
 	unloadLib();
@@ -54,102 +73,121 @@ YangAudioEncoderOpus::YangAudioEncoderOpus() {
 }
 
 YangAudioEncoderOpus::~YangAudioEncoderOpus() {
-	closeEnc();
-	yang_deleteA(m_cbits);
+	if (m_encoder) {
+		yang_opus_encoder_destroy(m_encoder);
+		m_encoder = NULL;
+	}
+    
+	yang_deleteA(m_encInBuf);
+	yang_deleteA(m_encOutBuf);
+	
+	yang_deleteA(m_pcmBuf);
 
-	yang_deleteA(m_in);
-	yang_deleteA(m_input1);
-	yang_deleteA(m_input);
 #if Yang_Opus_So
-
 	unloadLib();
 	m_lib.unloadObject();
 #endif
 }
 
-#define MAX_PACKET_SIZE (3*1276)
-void YangAudioEncoderOpus::init(YangAudioInfo *pap) {
-	if (m_isInit)
+void YangAudioEncoderOpus::init(YangAudioInfo* info) {
+	if (m_encoder != NULL) {
 		return;
+	}
+
 #if Yang_Opus_So
 	m_lib.loadObject("libopus");
 	loadLib();
 #endif
-	setAudioPara(pap);
+    
+    // 1. 创建opus编码器
 	int32_t err = 0;
 
-	m_encoder = yang_opus_encoder_create(m_audioInfo.sample, m_audioInfo.channel,
-			OPUS_APPLICATION_VOIP, &err);//OPUS_APPLICATION_AUDIO
+	m_encoder = yang_opus_encoder_create(
+		// 采样率
+		info->sample, 
+		// 声道数
+		info->channel,
+		// 应用场景：语音通话，更低延迟、更强抗丢包
+		OPUS_APPLICATION_VOIP, 
+		// 错误码
+		&err
+	);
+
 	if (err < 0) {
-		yang_error("failed to create an Opus encoder: %s\n",
-				yang_opus_strerror(err));
+		yang_error("failed to create an opus encoder: %s", yang_opus_strerror(err));
+
 #ifdef _MSC_VER
-    ExitProcess(1);
+        ExitProcess(1);
 #else
-    _exit(0);
+        _exit(0);
 #endif
-
 	}
+    
+	// 2. 设置编码器使用固定码率，0表示关闭 VBR 可变码率
 	yang_opus_encoder_ctl(m_encoder, OPUS_SET_VBR(0));
-	//#define BITRATE 16000
-	//#define BITRATE 16000
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_BITRATE(bitrate_bps));
-	if (m_audioInfo.enableMono){
-		yang_opus_encoder_ctl(m_encoder,OPUS_SET_BANDWIDTH(OPUS_BANDWIDTH_WIDEBAND));
+    
+	// 3. 如果是用单声道则把频谱上限锁到 WB（约 8 kHz 音频带宽），省码率
+	if (info->enableMono) {
+		yang_opus_encoder_ctl(m_encoder, OPUS_SET_BANDWIDTH(OPUS_BANDWIDTH_WIDEBAND));
 	}
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_VBR(use_vbr));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_VBR_CONSTRAINT(cvbr));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_COMPLEXITY(10));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_INBAND_FEC(use_inbandfec));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_FORCE_CHANNELS(forcechannels));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_DTX(use_dtx));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_PACKET_LOSS_PERC(packet_loss_perc));
-
-	if(m_audioInfo.enableAudioFec){
+    
+	// 4. 如果需要纠错，则开启 FEC 前向纠错
+	if(info->enableAudioFec) {
 		yang_opus_encoder_ctl(m_encoder, OPUS_SET_INBAND_FEC(1));
 		yang_opus_encoder_ctl(m_encoder, OPUS_SET_PACKET_LOSS_PERC(20));
 	}
+    
+	// 5. 编码器内部预读采样数（算法延迟）。读出来放进 skip 变量
 	int32_t skip = 0;
 	yang_opus_encoder_ctl(m_encoder, OPUS_GET_LOOKAHEAD(&skip));
+
+	// 6. 设置采样深度为 16-bit
 	yang_opus_encoder_ctl(m_encoder, OPUS_SET_LSB_DEPTH(16));
-//yang_opus_encoder_ctl(m_encoder, OPUS_SET_EXPERT_FRAME_DURATION(variable_duration));
+    
+	// 7. 设置待编码的帧大小：Opus 常用 20ms 一帧，采样率 / 50。
+	m_pcmFrameSize = info->sample / 50;
 
-	m_frameSize=m_audioInfo.sample/50;
-
-	m_frameShortSize=m_frameSize*m_audioInfo.channel;
-	m_in = new short[m_frameShortSize];
-	m_cbits = new uint8_t[MAX_PACKET_SIZE];
-	m_input = new uint8_t[m_frameShortSize*2];
-	m_input1 = new short[m_frameShortSize];
-	m_isInit = 1;
-
+	// 8. 计算一帧采样数：帧大小 * 声道数
+	m_encInFrameSize = m_pcmFrameSize * info->channel;
+    
+	// 9. 分配 PCM 字节流缓冲区
+	m_pcmBuf = new uint8_t[m_encInFrameSize * 2];
+    
+	// 10. 分配 Opus 输入和输出缓冲区
+	m_encInBuf = new short[m_encInFrameSize];
+	m_encOutBuf = new uint8_t[MAX_PACKET_SIZE];
 }
 
+int32_t YangAudioEncoderOpus::encoder(YangFrame* frame, YangEncoderCallback* cb) {
+	if (m_encoder == NULL) {
+		return 1;
+	}
+    
+	// 拷贝 PCM 字节流到缓冲区
+	memcpy(m_pcmBuf, frame->payload, frame->nb);
+    
+	// 把采集来的小端 16-bit PCM 字节流拆成 Opus 要的 int16 采样数组
+	// 采集侧交给编码器的是 uint8_t*：每个采样 2 个字节，低字节在前、高字节在后，所以每 2 个字节构成一个 int16 采样
+	for (int32_t i = 0; i < m_encInFrameSize; i++) {
+		m_encInBuf[i] = m_pcmBuf[2 * i + 1] << 8 | m_pcmBuf[2 * i];
+	}    
 
-int32_t YangAudioEncoderOpus::encoder(YangFrame* pframe,YangEncoderCallback *pcallback) {
-	if (!m_encoder)		return 1;
+	// opus 编码
+	int32_t outBufSize = yang_opus_encode(
+		m_encoder, 
+		m_encInBuf, 
+		m_pcmFrameSize, 
+		m_encOutBuf,	
+		MAX_PACKET_SIZE
+	);
+	
+	// 回调编码结果
+	if (outBufSize > 0 && cb != NULL) {
+		frame->payload = m_encOutBuf;
+		frame->nb = outBufSize;
 
-		memcpy(m_input, pframe->payload, pframe->nb);
-		for (int32_t i = 0; i < m_frameShortSize; i++) {
-			m_input1[i] = m_input[2 * i + 1] << 8 | m_input[2 * i];
-		}
-
-		ret = yang_opus_encode(m_encoder, m_input1, m_frameSize, m_cbits,	MAX_PACKET_SIZE);
-		if (ret > 0 && pcallback){
-			pframe->payload=m_cbits;
-			pframe->nb=ret;
-			pcallback->onAudioData(pframe);
-
-		}
-
+		cb->onAudioData(frame);
+	}
 
 	return Yang_Ok;
-}
-
-void YangAudioEncoderOpus::closeEnc() {
-
-	if (m_encoder)
-		yang_opus_encoder_destroy(m_encoder);
-	m_encoder = NULL;
-
 }

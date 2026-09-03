@@ -10,22 +10,13 @@
 #include <yangutil/buffer/YangAudioBuffer.h>
 #include <yangencoder/YangEncoder.h>
 
-
-class YangAudioEncoder
-{
+class YangAudioEncoder {
 public:
-	YangAudioEncoder();
-	virtual ~YangAudioEncoder(void);
-    virtual void init(YangAudioInfo *pap)=0;
-    virtual int32_t encoder(YangFrame* pframe,YangEncoderCallback* pcallback)=0;
-    void stop();
-    int32_t m_uid;
+	virtual ~YangAudioEncoder() {}
 
-protected:
-    void setAudioPara(YangAudioInfo *audioInfo);
-	int32_t m_isInit;
-	YangAudioInfo m_audioInfo;
-
+public:
+    virtual void init(YangAudioInfo* info) = 0;
+    virtual int32_t encoder(YangFrame* frame, YangEncoderCallback* cb) = 0;
 };
 
-#endif
+#endif //___YangAudioEncoderPipe__
