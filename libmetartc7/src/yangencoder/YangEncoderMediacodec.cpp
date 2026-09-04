@@ -10,6 +10,9 @@
 #if Yang_OS_ANDROID
 #include <EGL/egl.h>
 YangEncoderMediacodec::YangEncoderMediacodec() {
+    m_isInit = 0;
+	m_vbuffer = new uint8_t[YANG_VIDEO_ENCODE_BUFFER_LEN];
+
 	m_sendKeyframe=0;
 	m_colorSpace=19;
 	m_width=640;
@@ -33,6 +36,11 @@ YangEncoderMediacodec::~YangEncoderMediacodec(void) {
 	}
 	yang_free(m_sps.bytes);
 	yang_free(m_pps.bytes);
+
+	if(m_vbuffer) {
+		delete[] m_vbuffer;
+		m_vbuffer = NULL;
+	}
 }
 void YangEncoderMediacodec::sendMsgToEncoder(YangRtcEncoderMessage *msg){
 	if(msg->request==Yang_Req_Sendkeyframe){
@@ -50,9 +58,9 @@ void YangEncoderMediacodec::setVideoMetaData(YangVideoMeta *pvmd) {
 
 int32_t YangEncoderMediacodec::init(YangContext* pcontext,YangVideoInfo* videoInfo) {
 	if (m_isInit == 1)		return Yang_Ok;
+    
+	memcpy(&m_videoInfo, videoInfo, sizeof(YangVideoInfo));
 
-	YangVideoEncInfo* encInfo=&pcontext->avinfo.enc;
-	setVideoPara(videoInfo, encInfo);
 	m_width=videoInfo->outWidth;
 	m_height=videoInfo->outHeight;
 	m_yuvLen=m_width*m_height*3/2;

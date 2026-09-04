@@ -60,6 +60,9 @@ void YangH264EncoderSoft::unloadLib() {
 }
 #endif
 YangH264EncoderSoft::YangH264EncoderSoft() {
+	m_isInit = 0;
+	m_vbuffer = new uint8_t[YANG_VIDEO_ENCODE_BUFFER_LEN];
+
 	m_nal = NULL;
 	m_264Nal = NULL;
 	m_sendKeyframe=0;
@@ -83,6 +86,12 @@ YangH264EncoderSoft::~YangH264EncoderSoft(void) {
 	m_264Nal = NULL;
 
 	m_nal = NULL;
+    
+	if(m_vbuffer) {
+		delete[] m_vbuffer;
+		m_vbuffer = NULL;
+	}
+
 #if Yang_X264_So
 	unloadLib();
 	m_lib.unloadObject();
@@ -140,7 +149,10 @@ int32_t YangH264EncoderSoft::init(YangContext* pcontext,YangVideoInfo* videoInfo
 	loadLib();
 #endif
 	YangVideoEncInfo* encInfo=&pcontext->avinfo.enc;
-	setVideoPara(videoInfo, encInfo);
+	memcpy(&m_videoInfo,videoInfo,sizeof(YangVideoInfo));
+    
+	memcpy(&m_videoInfo,videoInfo,sizeof(YangVideoInfo));
+
 	x264_param_t *param = new x264_param_t();
 	if (encInfo->preset < 5)
 		yang_x264_param_default_preset(param, x264_preset_names[encInfo->preset],

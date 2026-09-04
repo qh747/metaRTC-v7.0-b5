@@ -119,6 +119,9 @@ int32_t YangVideoEncoderFfmpeg::set_hwframe_ctx(AVPixelFormat ctxformat,AVPixelF
 }
 
 YangVideoEncoderFfmpeg::YangVideoEncoderFfmpeg(int32_t ptype,int32_t phwtype) {
+	m_isInit = 0;
+	m_vbuffer = new uint8_t[YANG_VIDEO_ENCODE_BUFFER_LEN];
+
 	usingVaapi = 1;
 	m_encoderType=(YangVideoCodec)ptype;
 	g_hwType=(YangVideoHwType)phwtype;
@@ -139,6 +142,12 @@ YangVideoEncoderFfmpeg::YangVideoEncoderFfmpeg(int32_t ptype,int32_t phwtype) {
 }
 YangVideoEncoderFfmpeg::~YangVideoEncoderFfmpeg() {
 	encode_close();
+    
+	if(m_vbuffer) {
+		delete[] m_vbuffer;
+		m_vbuffer = NULL;
+	}
+
 #if Yang_Enable_FfmpegSo
 	unloadLib();
 	m_lib.unloadObject();
@@ -183,7 +192,8 @@ int32_t YangVideoEncoderFfmpeg::init(YangContext* pcontext,YangVideoInfo* pvideo
 	loadLib();
 #endif
 
-	setVideoPara(pvideoInfo,&pcontext->avinfo.enc);
+	memcpy(&m_videoInfo,pvideoInfo,sizeof(YangVideoInfo));
+
 	usingVaapi=1;
 	yLen =m_videoInfo.outWidth * m_videoInfo.outHeight;
 		uLen = yLen / 4;

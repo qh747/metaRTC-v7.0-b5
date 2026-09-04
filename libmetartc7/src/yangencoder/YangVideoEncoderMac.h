@@ -26,6 +26,7 @@ public:
 	int32_t encode(YangFrame* pframe, YangEncoderCallback* pcallback);
 
 private:
+    YangVideoEncInfo m_enc;
 	YangCVideoEncoder* m_encoder;
 	YangCodecCallback m_mppCallback;
 

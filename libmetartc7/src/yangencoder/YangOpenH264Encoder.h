@@ -11,31 +11,27 @@
 class YangOpenH264Encoder: public YangVideoEncoder {
 public:
 	YangOpenH264Encoder();
-	~YangOpenH264Encoder(void);
+	virtual ~YangOpenH264Encoder();
 
-	int32_t init(YangContext* pcontext,YangVideoInfo* pvideoInfo);
+public:
+	virtual int32_t init(YangContext* context, YangVideoInfo* info);
 
-	void setVideoMetaData(YangVideoMeta *pvmd);
-	void parseRtmpHeader(uint8_t *p, int32_t pLen, int32_t *pwid, int32_t *phei, int32_t *pfps);
-	void sendMsgToEncoder(YangRtcEncoderMessage *msg);
+	virtual void setVideoMetaData(YangVideoMeta* meta);
+	virtual void sendMsgToEncoder(YangRtcEncoderMessage* msg);
+
 private:
+	virtual int32_t encode(YangFrame* frame, YangEncoderCallback* cb);
 
-	int32_t m_sendKeyframe;
-	int32_t encode(YangFrame* pframe, YangEncoderCallback* pcallback);
-protected:
-
+private: 
+    int32_t m_sendKeyframe;
 	ISVCEncoder *m_264Handle;
-
 
 	SSourcePicture m_pic;
 	SFrameBSInfo m_einfo;
 	int32_t m_yuvLen;
 	int32_t m_vlen;
 
-
-private:
-
 	bool m_hasHeader;
-
 };
-#endif
+
+#endif // __YangOpenH264Encoder__

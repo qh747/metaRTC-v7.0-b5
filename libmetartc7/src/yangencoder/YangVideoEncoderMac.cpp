@@ -44,8 +44,8 @@ int32_t YangVideoEncoderMac::init(YangContext* pcontext,YangVideoInfo* pvideoInf
 	if (m_isInit == 1)
 		return Yang_Ok;
 
-	YangVideoEncInfo* encInfo=&pcontext->avinfo.enc;
-	setVideoPara(pvideoInfo, encInfo);
+	memcpy(&m_videoInfo,pvideoInfo,sizeof(YangVideoInfo));
+	memcpy(&m_enc,&pcontext->avinfo.enc,sizeof(YangVideoEncInfo));
 
 	 if(m_encoder)
 	 	m_encoder->init(m_encoder->session,pvideoInfo,&m_enc,&m_mppCallback);

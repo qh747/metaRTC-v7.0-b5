@@ -9,6 +9,9 @@
 
 
 YangOpenH264Encoder::YangOpenH264Encoder() {
+	m_isInit = 0;
+	m_vbuffer = new uint8_t[YANG_VIDEO_ENCODE_BUFFER_LEN];
+
 	m_sendKeyframe=0;
 
 	m_264Handle = NULL;
@@ -27,6 +30,11 @@ YangOpenH264Encoder::~YangOpenH264Encoder(void) {
 		m_264Handle->Uninitialize();
 		WelsDestroySVCEncoder (m_264Handle);
 		m_264Handle = NULL;
+	}
+
+	if(m_vbuffer) {
+		delete[] m_vbuffer;
+		m_vbuffer = NULL;
 	}
 }
 void YangOpenH264Encoder::sendMsgToEncoder(YangRtcEncoderMessage *msg){
@@ -47,9 +55,7 @@ int32_t YangOpenH264Encoder::init(YangContext* pcontext,YangVideoInfo* videoInfo
 	if (m_isInit == 1)
 		return Yang_Ok;
 
-
-	YangVideoEncInfo* encInfo=&pcontext->avinfo.enc;
-	setVideoPara(videoInfo, encInfo);
+	memcpy(&m_videoInfo,videoInfo,sizeof(YangVideoInfo));
 	int32_t width=videoInfo->outWidth;
 	int32_t height=videoInfo->outHeight;
 	m_yuvLen=width*height;

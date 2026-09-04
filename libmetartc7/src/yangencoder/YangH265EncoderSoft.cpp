@@ -59,6 +59,9 @@ void YangH265EncoderSoft::unloadLib(){
 	yang_x265_encoder_open=NULL;
 }
 YangH265EncoderSoft::YangH265EncoderSoft() {
+	m_isInit = 0;
+	m_vbuffer = new uint8_t[YANG_VIDEO_ENCODE_BUFFER_LEN];
+
 	m_nal = NULL;
 	m_265Nal = NULL;
 	m_265Pic = NULL;
@@ -85,6 +88,11 @@ YangH265EncoderSoft::~YangH265EncoderSoft(void) {
 	m_265Nal = NULL;
 
 	m_nal = NULL;
+
+	if(m_vbuffer) {
+		delete[] m_vbuffer;
+		m_vbuffer = NULL;
+	}
 
 	unloadLib();
 	m_lib.unloadObject();
@@ -134,7 +142,8 @@ int32_t YangH265EncoderSoft::init(YangContext* pcontext,YangVideoInfo* videoInfo
 	loadLib();
 
 	YangVideoEncInfo* encInfo=&pcontext->avinfo.enc;
-	setVideoPara(videoInfo,encInfo);
+	memcpy(&m_videoInfo,videoInfo,sizeof(YangVideoInfo));
+
 	x265_param *param = yang_x265_param_alloc();
 	m_265Pic = new x265_picture();
 

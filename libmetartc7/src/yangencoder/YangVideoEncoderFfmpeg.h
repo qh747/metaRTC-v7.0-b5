@@ -37,6 +37,8 @@ class YangVideoEncoderFfmpeg : public YangVideoEncoder
         AVFrame	*m_frame;
         bool m_usingHw;
 
+		YangVideoInfo m_videoInfo;
+
         int32_t yLen;
         int32_t uLen;
         int32_t allLen;
