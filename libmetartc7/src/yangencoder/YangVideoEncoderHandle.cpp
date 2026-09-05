@@ -126,7 +126,6 @@ void YangVideoEncoderHandle::run() {
        
 		// 分辨率转换
 		if (m_info->width != m_info->outWidth) {
-			
 			yuv.scaleI420(
 				usedBuf,
 				outBuf, 

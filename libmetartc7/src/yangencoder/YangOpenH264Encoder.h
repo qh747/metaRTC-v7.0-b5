@@ -24,14 +24,7 @@ private:
 
 private: 
     int32_t m_sendKeyframe;
-	ISVCEncoder *m_264Handle;
-
-	SSourcePicture m_pic;
-	SFrameBSInfo m_einfo;
-	int32_t m_yuvLen;
-	int32_t m_vlen;
-
-	bool m_hasHeader;
+	ISVCEncoder* m_264Handle;
 };
 
 #endif // __YangOpenH264Encoder__

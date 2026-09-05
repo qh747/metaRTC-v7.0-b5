@@ -7,165 +7,216 @@
 #include <yangutil/sys/YangEndian.h>
 #include <yangavutil/video/YangMeta.h>
 
-
 YangOpenH264Encoder::YangOpenH264Encoder() {
 	m_isInit = 0;
 	m_vbuffer = new uint8_t[YANG_VIDEO_ENCODE_BUFFER_LEN];
 
-	m_sendKeyframe=0;
-
+	m_sendKeyframe = 0;
 	m_264Handle = NULL;
-	m_yuvLen=0;
-	 m_vlen=0;
-	m_hasHeader=false;
-
-	memset(&m_einfo,0,sizeof(SFrameBSInfo));
-	memset(&m_pic,0,sizeof(SSourcePicture));
-
-
 }
 
 YangOpenH264Encoder::~YangOpenH264Encoder(void) {
 	if (m_264Handle) {
 		m_264Handle->Uninitialize();
 		WelsDestroySVCEncoder (m_264Handle);
+
 		m_264Handle = NULL;
 	}
 
-	if(m_vbuffer) {
+	if (m_vbuffer) {
 		delete[] m_vbuffer;
 		m_vbuffer = NULL;
 	}
 }
-void YangOpenH264Encoder::sendMsgToEncoder(YangRtcEncoderMessage *msg){
-	if(msg->request==Yang_Req_Sendkeyframe){
-		m_sendKeyframe=1;
-	}else if(msg->request==Yang_Req_HighLostPacketRate){
 
-	}else if(msg->request==Yang_Req_LowLostPacketRate){
-
+void YangOpenH264Encoder::sendMsgToEncoder(YangRtcEncoderMessage* msg) {
+	if (msg->request == Yang_Req_Sendkeyframe) {
+		m_sendKeyframe = 1;
 	}
 }
 
-void YangOpenH264Encoder::setVideoMetaData(YangVideoMeta *pvmd) {
+void YangOpenH264Encoder::setVideoMetaData(YangVideoMeta* meta) {
 
 }
 
-int32_t YangOpenH264Encoder::init(YangContext* pcontext,YangVideoInfo* videoInfo) {
-	if (m_isInit == 1)
+int32_t YangOpenH264Encoder::init(YangContext* context, YangVideoInfo* info) {
+	if (m_isInit == 1) {
 		return Yang_Ok;
+	};
+    
+	memcpy(&m_videoInfo, info, sizeof(YangVideoInfo));
 
-	memcpy(&m_videoInfo,videoInfo,sizeof(YangVideoInfo));
-	int32_t width=videoInfo->outWidth;
-	int32_t height=videoInfo->outHeight;
-	m_yuvLen=width*height;
-	m_vlen=m_yuvLen * 5 / 4;
 	int ret = WelsCreateSVCEncoder(&m_264Handle);
+
 	SEncParamExt eparam;
 	m_264Handle->GetDefaultParams(&eparam);
+    
+	// 使用场景为摄像头视频实时编码
 	eparam.iUsageType = CAMERA_VIDEO_REAL_TIME;
-	eparam.fMaxFrameRate = 150;
-	eparam.iPicWidth = width;
-	eparam.iPicHeight = height;
-	eparam.iTargetBitrate = videoInfo->rate*1024;
+	// 最大帧率
+	eparam.fMaxFrameRate = (float)info->frame;
+	// 设置编码器宽度
+	eparam.iPicWidth = info->outWidth;
+	// 设置编码器高度
+	eparam.iPicHeight = info->outHeight;
+	// 设置编码器目标比特率
+	eparam.iTargetBitrate = info->rate * 1024;
+	// 设置编码器模式
 	eparam.iRCMode = RC_BITRATE_MODE;
+	// 设置编码器时间层数
 	eparam.iTemporalLayerNum = 1;
+	// 设置编码器空间层数
 	eparam.iSpatialLayerNum = 1;
+	// 设置编码器去噪
 	eparam.bEnableDenoise = false;
+	// 设置编码器背景检测
 	eparam.bEnableBackgroundDetection = true;
+	// 设置编码器自适应量化
 	eparam.bEnableAdaptiveQuant = false;
+	// 设置编码器帧跳过
 	eparam.bEnableFrameSkip = false;
+	// 设置编码器长时参考
 	eparam.bEnableLongTermReference = false;
+    // 设置编码器内帧间隔
 	eparam.uiIntraPeriod = 15u;
+	// 设置编码器SPS/PPS ID策略
 	eparam.eSpsPpsIdStrategy = CONSTANT_ID;
+	// 设置编码器NAL添加控制
 	eparam.bPrefixNalAddingCtrl = false;
-	eparam.sSpatialLayers[0].iVideoWidth = width;
-	eparam.sSpatialLayers[0].iVideoHeight = height;
-	eparam.sSpatialLayers[0].fFrameRate = 64;
-	eparam.sSpatialLayers[0].iSpatialBitrate = videoInfo->rate*1024;
+
+	// 设置编码器第0空间层宽度
+	eparam.sSpatialLayers[0].iVideoWidth = info->outWidth;
+	// 设置编码器第0空间层高度
+	eparam.sSpatialLayers[0].iVideoHeight = info->outHeight;
+	// 设置编码器第0空间层帧率
+	eparam.sSpatialLayers[0].fFrameRate = (float)info->frame;
+	// 设置编码器第0空间层比特率
+	eparam.sSpatialLayers[0].iSpatialBitrate = info->rate * 1024;
+	// 设置编码器第0空间层最大比特率
 	eparam.sSpatialLayers[0].iMaxSpatialBitrate = eparam.iMaxBitrate;
-	int videoFormat = videoFormatI420;
-	m_264Handle->SetOption(ENCODER_OPTION_DATAFORMAT, &videoFormat);
+    
+	// 初始化编码器
 	m_264Handle->InitializeExt(&eparam);
 
+	// 设置编码器输入像素格式
+	int videoFormat = videoFormatI420;
+	m_264Handle->SetOption(ENCODER_OPTION_DATAFORMAT, &videoFormat);
 
-	m_pic.iPicWidth = eparam.iPicWidth;
-	m_pic.iPicHeight = eparam.iPicHeight;
-	m_pic.iColorFormat = videoFormatI420;
-	m_pic.iStride[0] = m_pic.iPicWidth;
-	m_pic.iStride[1] = m_pic.iStride[2] = m_pic.iPicWidth / 2;
+	yang_trace("openh264 encoder is ready.");
 
 	m_isInit = 1;
-	yang_trace("\nopenh264 encoder is ready.");
 	return Yang_Ok;
-
 }
 
-int32_t YangOpenH264Encoder::encode(YangFrame* pframe, YangEncoderCallback* pcallback) {
-	uint8_t* yuv_data=pframe->payload;
-	int32_t destLength = 0;
-	int32_t frametype = YANG_Frametype_P;
+int32_t YangOpenH264Encoder::encode(YangFrame* frame, YangEncoderCallback* cb) {
+	// 强制下一帧为关键帧
 	if (m_sendKeyframe == 1) {
-		m_sendKeyframe = 2;
+		m_sendKeyframe = 0;
 		m_264Handle->ForceIntraFrame(true);
 	}
+    
+	// 设置编码器输入图片信息
+    SSourcePicture picInfo;
+	memset(&picInfo, 0, sizeof(SSourcePicture));
+    
+	// 设置编码器输入图片宽度和高度
+	picInfo.iPicWidth = m_videoInfo.outWidth;
+	picInfo.iPicHeight = m_videoInfo.outHeight;
+    
+	// 设置编码器输入像素格式
+	picInfo.iColorFormat = videoFormatI420;
+    
+	// 设置编码器输入图片步长
+	picInfo.iStride[0] = picInfo.iPicWidth;
+	picInfo.iStride[1] = picInfo.iPicWidth / 2;
+	picInfo.iStride[2] = picInfo.iPicWidth / 2;
+    
+	// 设置编码器输入图片数据
+	picInfo.pData[0] = frame->payload;
+	picInfo.pData[1] = frame->payload + (m_videoInfo.outWidth * m_videoInfo.outHeight);
+	picInfo.pData[2] = frame->payload + (m_videoInfo.outWidth * m_videoInfo.outHeight * 5 / 4);
+    
+	// 设置编码器输出编码信息
+    SFrameBSInfo encInfo;
+	memset(&encInfo, 0, sizeof(SFrameBSInfo));
 
-	m_pic.pData[0] = yuv_data;
-	m_pic.pData[1] = yuv_data +m_yuvLen;
-	m_pic.pData[2] = yuv_data + m_vlen;
-
-
-	int err = m_264Handle->EncodeFrame(&m_pic, &m_einfo);
+	// 编码图片
+	int err = m_264Handle->EncodeFrame(&picInfo, &encInfo);
 
 	if (err) {
-		yang_error("openh264 Encode err err=%d", err);
+		yang_error("openh264 encode err. error code: %d", err);
 		return ERROR_CODEC_Encode_Video;
 	}
-	if(videoFrameTypeIDR==m_einfo.eFrameType)  	frametype=YANG_Frametype_I;
+    
+	// 将多个层级的编码数据拼接到m_vbuffer缓冲区中。例如：层0：SPS + PPS，层1：I帧
+	int32_t encLen = 0;
 
-	for (int i = 0; i < m_einfo.iLayerNum; ++i) {
-		SLayerBSInfo *pLayerBsInfo = &m_einfo.sLayerInfo[i];
-		int frameType = pLayerBsInfo->eFrameType;
-		if (pLayerBsInfo != NULL) {
-			int iLayerSize = 0;
+	for (int i = 0; i < encInfo.iLayerNum; ++i) {
+		SLayerBSInfo* layerInfo = &encInfo.sLayerInfo[i];
 
-			int iNalIdx = pLayerBsInfo->iNalCount - 1;
+		if (layerInfo != NULL) {
+			int layerLen = 0;
+			int naluIdx = layerInfo->iNalCount - 1;
+
 			do {
-				iLayerSize += pLayerBsInfo->pNalLengthInByte[iNalIdx];
-				--iNalIdx;
-			} while (iNalIdx >= 0);
-			memcpy(m_vbuffer + destLength,(char *) ((*pLayerBsInfo).pBsBuf),iLayerSize);
-			destLength+=iLayerSize;
+				layerLen += layerInfo->pNalLengthInByte[naluIdx];
+				--naluIdx;
+
+			} while (naluIdx >= 0);
+
+			memcpy(m_vbuffer + encLen, (char*)(layerInfo->pBsBuf), layerLen);
+			encLen += layerLen;
 		}
 	}
 
-	pframe->payload = frametype==YANG_Frametype_I?m_vbuffer:m_vbuffer+4;
-	pframe->frametype = frametype;
-	pframe->nb = frametype==YANG_Frametype_I?destLength:destLength-4;
-	if(frametype==YANG_Frametype_I){
-		int32_t spsLen=0,ppsLen=0,spsPos=0,ppsPos=0,ipos=0;
-		spsPos=yang_find_pre_start_code(m_vbuffer,destLength);
-		if(spsPos<0) return 1;
-		ppsPos=yang_find_pre_start_code(m_vbuffer+4+spsPos,destLength-4-spsPos);
-		if(ppsPos<0) return 1;
-		ppsPos+=4+spsPos;
-		ipos=yang_find_pre_start_code(m_vbuffer+4+ppsPos,destLength-4-ppsPos);
-		if(ipos<0) return 1;
-		ipos+=4+ppsPos;
-		spsLen=ppsPos-spsPos-4;
-		ppsLen=ipos-ppsPos-4;
-		yang_put_be32((char*)m_vbuffer,(uint32_t)spsLen);
-		yang_put_be32((char*)(m_vbuffer+4+spsLen),(uint32_t)ppsLen);
+	frame->frametype = (videoFrameTypeIDR == encInfo.eFrameType) ? YANG_Frametype_I : YANG_Frametype_P;
+	
+	frame->payload = (frame->frametype == YANG_Frametype_I) ? m_vbuffer : m_vbuffer + 4;
+	frame->nb = (frame->frametype == YANG_Frametype_I) ? encLen : encLen - 4;
 
+	// 将SPS和PPS前的00 00 00 01修改为SPS和PPS的长度
+	if (frame->frametype == YANG_Frametype_I) {
+		int32_t spsPos = yang_find_pre_start_code(
+			m_vbuffer, 
+			encLen
+		);
+
+		if (spsPos < 0) {
+			return 1;
+		}
+
+		int32_t ppsPos = yang_find_pre_start_code(
+			m_vbuffer + 4 + spsPos, 
+			encLen - 4 - spsPos
+		);
+
+		if (ppsPos < 0) {
+			return 1;
+		}
+		
+		ppsPos += 4 + spsPos;
+
+		int32_t ipos = yang_find_pre_start_code(
+			m_vbuffer + 4 + ppsPos, 
+			encLen - 4 - ppsPos
+		);
+
+		if (ipos < 0) {
+			return 1;
+		}
+
+		ipos += 4 + ppsPos;
+
+		int32_t spsLen = ppsPos - spsPos - 4;
+		int32_t ppsLen = ipos - ppsPos - 4;
+
+		yang_put_be32((char*)m_vbuffer, (uint32_t)spsLen);
+		yang_put_be32((char*)(m_vbuffer + 4 + spsLen), (uint32_t)ppsLen);
 	}
 
-	if (pcallback)
-		pcallback->onVideoData(pframe);
-
-	if (m_sendKeyframe == 2) {
-		m_sendKeyframe = 0;
-		yang_trace("sendkey.frametype=%d",	frametype);
-	}
+	if (cb) {
+	    cb->onVideoData(frame);
+    }
 
 	return Yang_Ok;
 }
