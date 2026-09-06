@@ -58,18 +58,7 @@ void YangRtcPublish::run() {
 
 	yang_create_streamCapture(&data);
 
-	data.initAudio(
-		data.context,
-		m_context->avinfo.sys.transType,
-		m_context->avinfo.audio.sample, 
-		m_context->avinfo.audio.channel,
-		(YangAudioCodec)m_context->avinfo.audio.audioEncoderType
-	);
-
-	data.initVideo(
-		data.context,
-		m_context->avinfo.sys.transType
-	);
+	data.initAudio(data.context, m_context->avinfo.audio.sample);
 
 	YangVideoCodec videoType = (YangVideoCodec)m_context->avinfo.video.videoEncoderType;
 
@@ -113,8 +102,7 @@ void YangRtcPublish::run() {
 					data.setVideoMeta(
 						data.context,
 						m_meta->livingMeta.buffer,
-						m_meta->livingMeta.bufLen, 
-						videoType
+						m_meta->livingMeta.bufLen
 					);
 				} 
 				else {
@@ -140,8 +128,7 @@ void YangRtcPublish::run() {
 					data.setVideoMeta(
 						data.context,
 						vmd->livingMeta.buffer,
-						vmd->livingMeta.bufLen, 
-						videoType
+						vmd->livingMeta.bufLen
 					);
 				}
 
@@ -172,7 +159,7 @@ void YangRtcPublish::run() {
 				}
 			}
 
-			data.setVideoData(data.context, &videoFrame, videoType);
+			data.setVideoData(data.context, &videoFrame);
             int32_t sendVideoResult = m_peerConn->on_video(data.getVideoFrame(data.context));
 
 			if (sendVideoResult != Yang_Ok) {

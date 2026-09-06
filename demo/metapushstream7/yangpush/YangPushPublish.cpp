@@ -91,14 +91,14 @@ void YangPushPublish::startVideoEncoding() {
 	isVideoEncode = true;
 }
 
-void YangPushPublish::setRtcNetBuffer(YangRtcPublish* prr) {
+void YangPushPublish::setRtcNetBuffer(YangRtcPublish* rtcPub) {
 	yang_reindex(m_encoder->getOutAudioBuffer());
 	yang_reindex(m_encoder->getOutVideoBuffer());
 
-	prr->setInAudioList(m_encoder->getOutAudioBuffer());
-	prr->setInVideoList(m_encoder->getOutVideoBuffer());
+	rtcPub->setInAudioList(m_encoder->getOutAudioBuffer());
+	rtcPub->setInVideoList(m_encoder->getOutVideoBuffer());
 	
-	prr->setInVideoMetaData(m_encoder->getOutVideoMetaData());
+	rtcPub->setInVideoMetaData(m_encoder->getOutVideoMetaData());
 }
 
 YangVideoBuffer* YangPushPublish::getPreVideoBuffer(){
