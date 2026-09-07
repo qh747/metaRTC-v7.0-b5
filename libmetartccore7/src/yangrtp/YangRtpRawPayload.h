@@ -10,11 +10,13 @@ typedef struct YangRtpRawData{
 	int32_t nb;
 	char* payload;
 }YangRtpRawData;
+
 #ifdef __cplusplus
 extern "C"{
 #endif
-int32_t yang_encode_h264_raw(YangBuffer* buf,YangRtpRawData* pkt);
-int32_t yang_decode_h264_raw(YangBuffer* buf,YangRtpRawData* pkt);
+
+int32_t yang_encode_rtpPayload(YangBuffer* buf, YangRtpRawData* pkt);
+
 #ifdef __cplusplus
 }
 #endif

@@ -14,60 +14,69 @@
 #include <yangutil/sys/YangLog.h>
 #include <yangavutil/video/YangMeta.h>
 
-static int32_t yang_encodeVideo(YangRtcSession *session, YangPushH264Rtp *rtp,
-		YangRtpPacket *pkt) {
-	uint8_t padding;
-	int32_t err = 0;
+static int32_t yang_encodeVideo(YangRtcSession* session, YangPushH264Rtp* rtp, YangRtpPacket* pkt) {
+	yang_init_buffer(&rtp->buf, yang_get_rtpBuffer(rtp->videoRtpBuffer), kRtpPacketSize);
+    
+    int32_t err = yang_encode_rtpHeader(&rtp->buf, &pkt->header);
 
-	yang_init_buffer(&rtp->buf, yang_get_rtpBuffer(rtp->videoRtpBuffer),	kRtpPacketSize);
-
-	if ((err = yang_encode_rtpHeader(&rtp->buf, &pkt->header)) != Yang_Ok) {
-		return yang_error_wrap(err, "h264 rtp header(%d) encode packet fail",
-				pkt->payload_type);
+	if (err != Yang_Ok) {
+		return yang_error_wrap(
+			err, 
+			"h264 rtp header(%d) encode packet fail", pkt->payload_type
+		);
 	}
 
 	if (pkt->payload_type == YangRtpPacketPayloadTypeRaw) {
-		err = yang_encode_h264_raw(&rtp->buf, &rtp->videoRawData);
-	} else if (pkt->payload_type == YangRtpPacketPayloadTypeFUA2) {
-		err = yang_encode_h264_fua2(&rtp->buf, &rtp->videoFua2Data);
-
-	} else if (pkt->payload_type == YangRtpPacketPayloadTypeSTAP) {
+		err = yang_encode_rtpPayload(&rtp->buf, &rtp->videoRawData);
+	} 
+	else if (pkt->payload_type == YangRtpPacketPayloadTypeFUA2) {
+		err = yang_encode_h264_fua(&rtp->buf, &rtp->videoFua2Data);
+	} 
+	else if (pkt->payload_type == YangRtpPacketPayloadTypeSTAP) {
 		err = yang_encode_h264_stap(&rtp->buf, &rtp->stapData);
 		yang_reset_h2645_stap(&rtp->stapData);
 	}
 
 	if (err != Yang_Ok) {
-		return yang_error_wrap(err, "h264 rtp payload(%d) encode packet fail",
-				pkt->payload_type);
+		return yang_error_wrap(
+			err, 
+			"h264 rtp payload(%d) encode packet fail", pkt->payload_type
+		);
 	}
+
 	if (pkt->header.padding_length > 0) {
-		padding = pkt->header.padding_length;
+		uint8_t padding = pkt->header.padding_length;
+
 		if (!yang_buffer_require(&rtp->buf, padding)) {
-			return yang_error_wrap(ERROR_RTC_RTP_MUXER,
-					"padding requires %d bytes", padding);
+			return yang_error_wrap(
+				ERROR_RTC_RTP_MUXER,
+				"padding requires %d bytes", padding
+			);
 		}
+
 		yang_memset(rtp->buf.head, padding, padding);
 		yang_buffer_skip(&rtp->buf, padding);
 	}
+
+	err = yang_send_avpacket(session, pkt, &rtp->buf);
+
+	if (err != Yang_Ok) {
+		return yang_error_wrap(err, "video rtp send packet fail");
+	}
+
 	session->context.stats.on_pub_videoRtp(&session->context.stats.sendStats,pkt,&rtp->buf);
-	return yang_send_avpacket(session, pkt, &rtp->buf);
+	return err;
 }
 
-
-
-static int32_t yang_package_stap_a(void *psession,
-		YangPushH264Rtp *rtp, YangFrame *videoFrame) {
-	int32_t err = Yang_Ok;
-
-	YangRtcSession *session=(YangRtcSession*)psession;
-	YangSample sps_sample;
-	YangSample pps_sample;
+static int32_t yang_package_stap_a(void* sess, YangPushH264Rtp *rtp, YangFrame *videoFrame) {
+	YangRtcSession *session = (YangRtcSession*)sess;
 
 	yang_reset_rtpPacket(&rtp->videoStapPacket);
+
 	rtp->videoStapPacket.header.payload_type = session->h264PayloadType;
 	rtp->videoStapPacket.header.ssrc = rtp->videoSsrc;
 	rtp->videoStapPacket.frame_type = YangFrameTypeVideo;
-	rtp->videoStapPacket.nalu_type = (YangAvcNaluType) kStapA;
+	rtp->videoStapPacket.nalu_type = (YangAvcNaluType)kStapA;
 	rtp->videoStapPacket.header.marker = yangfalse;
 	rtp->videoStapPacket.header.sequence = rtp->videoSeq++;
 	rtp->videoStapPacket.header.timestamp = videoFrame->pts;
@@ -76,86 +85,81 @@ static int32_t yang_package_stap_a(void *psession,
 
 	yang_reset_h2645_stap(&rtp->stapData);
 
+    YangSample sps_sample;
+	YangSample pps_sample;
 
-	yang_decodeMetaH264(videoFrame->payload, videoFrame->nb, &sps_sample,&pps_sample);
+	yang_decodeMetaH264(
+		videoFrame->payload, 
+		videoFrame->nb, 
+		&sps_sample,
+		&pps_sample
+	);
 
 	rtp->stapData.nri = (YangAvcNaluType) sps_sample.bytes[0];
 
 	yang_insert_YangSampleVector(&rtp->stapData.nalus, &sps_sample);
 	yang_insert_YangSampleVector(&rtp->stapData.nalus, &pps_sample);
+    
+	int32_t err = yang_encodeVideo(session, rtp, &rtp->videoStapPacket);
 
-	if ((err = yang_encodeVideo(session, rtp, &rtp->videoStapPacket))
-			!= Yang_Ok) {
+	if (err != Yang_Ok) {
 		return yang_error_wrap(err, "encode packet");
 	}
+
 	return err;
 }
 
-static int32_t yang_package_single_nalu2(YangRtcSession *session,
-		YangPushH264Rtp *rtp, YangFrame *videoFrame) {
-	int32_t err = Yang_Ok;
-
+static int32_t yang_package_single_nalu2(
+	YangRtcSession* session, 
+	YangPushH264Rtp* rtp, 
+	YangFrame* frame) {
 
 	yang_reset_rtpPacket(&rtp->videoRawPacket);
+
 	rtp->videoRawPacket.header.payload_type = session->h264PayloadType;
 	rtp->videoRawPacket.header.ssrc = rtp->videoSsrc;
 	rtp->videoRawPacket.frame_type = YangFrameTypeVideo;
 	rtp->videoRawPacket.header.sequence = rtp->videoSeq++;
-	rtp->videoRawPacket.header.timestamp = videoFrame->pts;
+	rtp->videoRawPacket.header.timestamp = frame->pts;
 	rtp->videoRawPacket.header.marker = yangtrue;
 	rtp->videoRawPacket.payload_type = YangRtpPacketPayloadTypeRaw;
 
 	rtp->videoRawData.payload = rtp->videoBuf;
-	rtp->videoRawData.nb = videoFrame->nb;
-	yang_memcpy(rtp->videoRawData.payload, videoFrame->payload,
-			rtp->videoRawData.nb);
-	if ((err = yang_encodeVideo(session, rtp, &rtp->videoRawPacket))
-			!= Yang_Ok) {
-		return yang_error_wrap(err, "encode packet");
-	}
-	return err;
-}
+	rtp->videoRawData.nb = frame->nb;
 
-int32_t yang_push_h264_package_single_nalu(YangRtcSession *session,
-		YangPushH264Rtp *rtp, char *p, int32_t plen, int64_t timestamp) {
+	yang_memcpy(rtp->videoRawData.payload, frame->payload, rtp->videoRawData.nb);
+    
+	int32_t err = yang_encodeVideo(session, rtp, &rtp->videoRawPacket);
 
-	int32_t err = Yang_Ok;
-
-	yang_reset_rtpPacket(&rtp->videoRawPacket);
-	rtp->videoRawPacket.header.payload_type = session->h264PayloadType;
-	rtp->videoRawPacket.header.ssrc = rtp->videoSsrc;
-	rtp->videoRawPacket.frame_type = YangFrameTypeVideo;
-	rtp->videoRawPacket.header.sequence = rtp->videoSeq++;
-	rtp->videoRawPacket.header.timestamp = timestamp;
-
-	rtp->videoRawPacket.payload_type = YangRtpPacketPayloadTypeRaw;
-	rtp->videoRawData.payload = rtp->videoBuf;
-	rtp->videoRawData.nb = plen;
-	yang_memcpy(rtp->videoRawData.payload, p, plen);
-	if ((err = yang_encodeVideo(session, rtp, &rtp->videoRawPacket))
-			!= Yang_Ok) {
+	if (err != Yang_Ok) {
 		return yang_error_wrap(err, "encode packet");
 	}
 
 	return err;
 }
 
-static int32_t yang_package_fu_a(YangRtcSession *session, YangPushH264Rtp *rtp,
-		YangFrame *videoFrame, int32_t fu_payload_size) {
+static int32_t yang_package_fu_a(
+	YangRtcSession* session, 
+	YangPushH264Rtp* rtp, 
+	YangFrame* videoFrame, 
+	int32_t fu_payload_size) {
+
 	int32_t err = Yang_Ok;
-	int32_t i,packet_size;
-	int32_t plen = videoFrame->nb;
-	uint8_t *pdata = videoFrame->payload;
-	char *p = (char*) pdata + 1;
-	int32_t nb_left = plen - 1;
-	uint8_t header = pdata[0];
+
+	char *p = (char*)videoFrame->payload + 1;
+	int32_t nb_left = videoFrame->nb - 1;
+
+	uint8_t header = videoFrame->payload[0];
 	uint8_t nal_type = header & kNalTypeMask;
 
-	int32_t num_of_packet = ((plen - 1) % fu_payload_size==0)?0:1 + (plen - 1) / fu_payload_size;
-	for (i = 0; i < num_of_packet; ++i) {
-		packet_size = yang_min(nb_left, fu_payload_size);
+	int32_t num_of_packet = ((videoFrame->nb - 1) % fu_payload_size==0) ? 0 : 1 + 
+	                        ((videoFrame->nb - 1) / fu_payload_size);
+
+	for (int32_t i = 0; i < num_of_packet; ++i) {
+		int32_t packet_size = yang_min(nb_left, fu_payload_size);
 
 		yang_reset_rtpPacket(&rtp->videoFuaPacket);
+
 		rtp->videoFuaPacket.header.payload_type = session->h264PayloadType;
 		rtp->videoFuaPacket.header.ssrc = rtp->videoSsrc;
 		rtp->videoFuaPacket.frame_type = YangFrameTypeVideo;
@@ -166,6 +170,7 @@ static int32_t yang_package_fu_a(YangRtcSession *session, YangPushH264Rtp *rtp,
 		rtp->videoFuaPacket.payload_type = YangRtpPacketPayloadTypeFUA2;
 
 		yang_memset(&rtp->videoFua2Data, 0, sizeof(YangFua2H264Data));
+
 		rtp->videoFua2Data.nri = (YangAvcNaluType) header;
 		rtp->videoFua2Data.nalu_type = (YangAvcNaluType) nal_type;
 		rtp->videoFua2Data.start = (i == 0) ? 1 : 0;
@@ -173,84 +178,97 @@ static int32_t yang_package_fu_a(YangRtcSession *session, YangPushH264Rtp *rtp,
 
 		rtp->videoFua2Data.payload = rtp->videoBuf;
 		rtp->videoFua2Data.nb = packet_size;
+
 		yang_memcpy(rtp->videoFua2Data.payload, p, packet_size);
 
 		p += packet_size;
 		nb_left -= packet_size;
+
 #if Yang_Enable_TWCC
-		if(i==0){
-			rtp->rtpExtension.twcc.sn=rtp->twccSeq++ ;
-			rtp->videoFuaPacket.header.extensions=&rtp->rtpExtension;
-			session->context.twcc.insertLocal(&session->context.twcc.session,rtp->rtpExtension.twcc.sn);
+		if (i == 0) {
+			rtp->rtpExtension.twcc.sn = rtp->twccSeq++ ;
+			rtp->videoFuaPacket.header.extensions = &rtp->rtpExtension;
+			session->context.twcc.insertLocal(&session->context.twcc.session, rtp->rtpExtension.twcc.sn);
 		}
 #endif
-		if ((err = yang_encodeVideo(session, rtp, &rtp->videoFuaPacket))
-				!= Yang_Ok) {
+
+		if ((err = yang_encodeVideo(session, rtp, &rtp->videoFuaPacket)) != Yang_Ok) {
 			return yang_error_wrap(err, "encode packet");
 		}
-		rtp->videoFuaPacket.header.extensions=NULL;
 
+		rtp->videoFuaPacket.header.extensions=NULL;
 	}
 
 	return err;
 }
 
-static int32_t yang_on_video(void *psession, YangPushH264Rtp *rtp,
-		YangFrame *videoFrame) {
-	int32_t err = Yang_Ok;
-	YangRtcSession *session=(YangRtcSession*)psession;
-	if (videoFrame->nb <= kRtpMaxPayloadSize) {
-		if ((err = yang_package_single_nalu2(session, rtp, videoFrame))
-				!= Yang_Ok) {
+static int32_t yang_on_video(void* sess, YangPushH264Rtp* rtp, YangFrame* frame) {
+	YangRtcSession* session = (YangRtcSession*)sess;
+
+    int32_t err = Yang_Ok;
+
+	if (frame->nb <= kRtpMaxPayloadSize) {
+        err = yang_package_single_nalu2(session, rtp, frame);
+
+		if (err != Yang_Ok) {
 			return yang_error_wrap(err, "package single nalu");
 		}
+
 		session->context.stats.sendStats.videoRtpPacketCount++;
-	} else {
-		if ((err = yang_package_fu_a(session, rtp, videoFrame,
-				kRtpMaxPayloadSize)) != Yang_Ok) {
+	} 
+	else {
+        err = yang_package_fu_a(session, rtp, frame, kRtpMaxPayloadSize);
+
+		if (err != Yang_Ok) {
 			return yang_error_wrap(err, "package fu-a");
 		}
 	}
+
 	session->context.stats.sendStats.frameCount++;
 	return err;
 }
 
-void yang_create_pushH264(YangPushH264 *push, YangRtpBuffer* videoRtpBuffer) {
-	YangPushH264Rtp *rtp;
-
-	if (push == NULL)
+void yang_create_pushH264(YangPushH264 *push, YangRtpBuffer* buffer) {
+	if (push == NULL) {
 		return;
+	}
 
-	rtp=(YangPushH264Rtp*)yang_calloc(sizeof(YangPushH264Rtp),1);
-	push->push=rtp;
+	YangPushH264Rtp* rtp = (YangPushH264Rtp*)yang_calloc(sizeof(YangPushH264Rtp), 1);
+
 	rtp->videoSsrc = 0;
 	rtp->videoSeq = 0;
 
-	rtp->videoRtpBuffer = videoRtpBuffer;
+	rtp->videoRtpBuffer = buffer;
+
 	rtp->videoBuf = (char*) yang_calloc(kRtpPacketSize,1);
 	yang_memset(&rtp->stapData, 0, sizeof(YangRtpSTAPData));
-	yang_create_stap(&rtp->stapData);
- #if Yang_Enable_TWCC
-	rtp->rtpExtension.has_ext=1;
-	rtp->rtpExtension.twcc.has_twcc=1;
-	rtp->rtpExtension.twcc.id=Yang_TWCC_ID;
-#endif
-	push->on_video =yang_on_video;
 
-	push->on_spspps =yang_package_stap_a;
+	yang_create_stap(&rtp->stapData);
+	
+ #if Yang_Enable_TWCC
+	rtp->rtpExtension.has_ext = 1;
+	rtp->rtpExtension.twcc.has_twcc = 1;
+	rtp->rtpExtension.twcc.id = Yang_TWCC_ID;
+#endif
+    
+    push->push = rtp;
+ 
+	push->on_video = yang_on_video;
+	push->on_spspps = yang_package_stap_a;
 }
 
 void yang_destroy_pushH264(YangPushH264 *push) {
-	YangPushH264Rtp *rtp;
-
-	if (push == NULL|| push->push==NULL)
+	if (push == NULL || push->push == NULL) {
 		return;
+	}
 
-	rtp=push->push;
+	YangPushH264Rtp* rtp = push->push;
+
 	yang_free(rtp->videoBuf);
-	yang_reset_h2645_stap(&rtp->stapData);
 
+	yang_reset_h2645_stap(&rtp->stapData);
 	yang_destroy_stap(&rtp->stapData);
+
 	yang_destroy_rtpPacket(&rtp->videoFuaPacket);
 	yang_destroy_rtpPacket(&rtp->videoRawPacket);
 	yang_destroy_rtpPacket(&rtp->videoStapPacket);

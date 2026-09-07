@@ -10,7 +10,7 @@
 #include <yangrtp/YangRtpPacket.h>
 #include <yangrtp/YangRtpRawPayload.h>
 #include <yangrtp/YangRtpSTAPPayload.h>
-#include <yangrtp/YangRtpFUAPayload2.h>
+#include <yangrtp/YangRtpFUAPayload.h>
 
 typedef struct {
 	uint16_t audioSeq;

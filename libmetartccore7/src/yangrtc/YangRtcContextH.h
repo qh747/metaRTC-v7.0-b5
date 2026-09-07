@@ -14,23 +14,23 @@
 #include <yangutil/yangavinfo.h>
 #include <yangutil/sys/YangVector.h>
 
-
-
-typedef struct{
+typedef struct {
 	uint32_t ssrc;
 	uint32_t rtxSsrc;
 	uint32_t fecSsrc;
 	uint32_t twccId;
+
 } YangRtcTrack;
 
 yang_vector_declare(YangRtcTrack)
 
-typedef struct{
-	char *data;
+typedef struct {
+	char* data;
 	int32_t nb;
+
 } YangStunData;
 
-typedef struct{
+typedef struct {
 	yangbool enableAudioTrack;
 	yangbool enableVideoTrack;
 
@@ -42,19 +42,21 @@ typedef struct{
 
 	uint32_t audioSsrc;
 	uint32_t videoSsrc;
+
 	int32_t state;
 	int32_t twccId;
 
-	YangPeerInfo *peerInfo;
-	YangPeerCallback *peerCallback;
+	YangPeerInfo* peerInfo;
+	YangPeerCallback* peerCallback;
 
-	YangRtcSocket *sock;
+	YangRtcSocket* sock;
 
 #if Yang_Enable_Dtls
-	YangCertificate *cer;
+	YangCertificate* cer;
 	YangRtcDtls *dtls;
 	YangSRtp srtp;
 #endif
+
 	char localIp[64];
 
 	YangStunData stun;
@@ -63,11 +65,11 @@ typedef struct{
 
 	YangBandwidth bandwidth;
 	YangRtcStats stats;
+
 #if Yang_Enable_TWCC
 	YangRtcTwcc twcc;
 #endif
 
-
 } YangRtcContext;
 
-#endif /* SRC_YANGWEBRTC_YANGCRTCCONTEXT_H_H_ */
+#endif // SRC_YANGWEBRTC_YANGCRTCCONTEXT_H_H_

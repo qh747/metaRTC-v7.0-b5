@@ -846,7 +846,7 @@ static int32_t yang_rtcconn_set_local_description(YangRtcSession* session, char*
 		return ERROR_RTC_PEERCONNECTION;
 	}
 
-	yang_trace("\nstartRtc,port=%d", session->context.peerInfo->rtc. rtcLocalPort);
+	yang_trace("set local description. port: %d", session->context.peerInfo->rtc.rtcLocalPort);
 
 	if (session->context.peerInfo->mediaServer == Yang_Server_P2p) {
 		if (session->ice.session.candidateType > YangIceHost) {
@@ -1010,7 +1010,7 @@ int32_t yang_create_rtcConnection(
 	conn->session->context.peerCallback = peerCallback;
 
 	yang_create_rtcContext(&conn->session->context);
-	yang_create_ice(&conn->session->ice, peerInfo,peerCallback);
+	yang_create_ice(&conn->session->ice, peerInfo, peerCallback);
 
 	yang_memset(&conn->session->rtcp_compound, 0, sizeof(YangRtcpCompound));
 	yang_create_rtcpCompound(&conn->session->rtcp_compound);

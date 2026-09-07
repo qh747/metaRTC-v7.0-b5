@@ -8,7 +8,7 @@
 #include <yangrtp/YangRtpConstant.h>
 #include <yangrtp/YangRtpRawPayload.h>
 #include <yangrtp/YangRtpSTAPPayload.h>
-#include <yangrtp/YangRtpFUAPayload2.h>
+#include <yangrtp/YangRtpFUAPayload.h>
 
 #include <yangutil/sys/YangLog.h>
 #include <yangavutil/video/YangMeta.h>
@@ -33,9 +33,9 @@ static int32_t yang_encodeVideo(YangRtcSession *session, YangPushH265Rtp *rtp,
 				pkt->payload_type);
 	}
 	if (pkt->payload_type == YangRtpPacketPayloadTypeRaw) {
-		err = yang_encode_h264_raw(&rtp->buf, &rtp->videoRawData);
+		err = yang_encode_rtpPayload(&rtp->buf, &rtp->videoRawData);
 	} else if (pkt->payload_type == YangRtpPacketPayloadTypeFUA2) {
-		err = yang_encode_h265_fua2(&rtp->buf, &rtp->videoFua2Data);
+		err = yang_encode_h265_fua(&rtp->buf, &rtp->videoFua2Data);
 
 	} else if (pkt->payload_type == YangRtpPacketPayloadTypeSTAP) {
 		err = yang_encode_h265_stap(&rtp->buf, &rtp->stapData);

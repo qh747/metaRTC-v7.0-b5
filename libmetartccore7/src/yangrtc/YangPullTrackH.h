@@ -7,7 +7,7 @@
 #include <yangrtc/YangRtcContext.h>
 
 #include <yangrtp/YangRtpPacket.h>
-#include <yangrtp/YangRtpFUAPayload2.h>
+#include <yangrtp/YangRtpFUAPayload.h>
 #include <yangrtp/YangRtpSTAPPayload.h>
 
 #include <yangutil/sys/YangSsrc.h>

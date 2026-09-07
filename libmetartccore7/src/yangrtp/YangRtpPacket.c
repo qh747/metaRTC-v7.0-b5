@@ -6,14 +6,15 @@
 #include <yangrtp/YangRtp.h>
 #include <yangrtp/YangRtpConstant.h>
 #include <yangrtp/YangRtpRawPayload.h>
-#include <yangrtp/YangRtpFUAPayload2.h>
+#include <yangrtp/YangRtpFUAPayload.h>
 #include <yangrtp/YangRtpSTAPPayload.h>
 
 #include <yangutil/sys/YangLog.h>
 #include <yangutil/yangavinfotype.h>
 
-void yang_create_rtpPacket(YangRtpPacket* pkt){
-	yang_memset(&pkt->header,0,sizeof(YangRtpHeader));
+void yang_create_rtpPacket(YangRtpPacket* pkt) {
+	yang_memset(&pkt->header, 0, sizeof(YangRtpHeader));
+
 	pkt->payload_type = YangRtpPacketPayloadTypeUnknown;
 	pkt->actual_buffer_size = 0;
 
@@ -21,24 +22,24 @@ void yang_create_rtpPacket(YangRtpPacket* pkt){
 	pkt->frame_type = YangFrameTypeAudio;
 	pkt->cached_payload_size = 0;
 
-	pkt->payload=NULL;
-
-	pkt->nb=0;
+	pkt->payload = NULL;
+	pkt->nb = 0;
 }
 
-void yang_destroy_rtpPacket(YangRtpPacket* pkt){
-	if(pkt==NULL)
-		return;
-
-	if(pkt)
-		yang_free(pkt->header.extensions);
+void yang_destroy_rtpPacket(YangRtpPacket* pkt) {
+	if (pkt != NULL) {
+        yang_free(pkt->header.extensions);
+	}
 }
-void yang_reset_rtpPacket(YangRtpPacket* pkt){
-	if(pkt==NULL)
+
+void yang_reset_rtpPacket(YangRtpPacket* pkt) {
+	if (pkt == NULL) {
 		return;
+	}
 
 	yang_free(pkt->header.extensions);
-	yang_memset(&pkt->header,0,sizeof(YangRtpHeader));
+	yang_memset(&pkt->header, 0, sizeof(YangRtpHeader));
+
 	pkt->payload_type = YangRtpPacketPayloadTypeUnknown;
 	pkt->actual_buffer_size = 0;
 
@@ -46,12 +47,12 @@ void yang_reset_rtpPacket(YangRtpPacket* pkt){
 	pkt->frame_type = YangFrameTypeAudio;
 	pkt->cached_payload_size = 0;
 
-	pkt->payload=NULL;
-	pkt->nb=0;
+	pkt->payload = NULL;
+	pkt->nb = 0;
 }
 
 
-int32_t yang_decode_rtpPacket(YangRtpPacket* pkt,YangBuffer *buf) {
+int32_t yang_decode_rtpPacket(YangRtpPacket* pkt, YangBuffer* buf) {
 	uint8_t padding;
 	int32_t err = Yang_Ok;
 	if(pkt==NULL)

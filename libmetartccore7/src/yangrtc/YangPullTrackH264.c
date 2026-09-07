@@ -9,7 +9,7 @@
 #include <yangrtp/YangRtpConstant.h>
 #include <yangrtp/YangRtpRawPayload.h>
 #include <yangrtp/YangRtpSTAPPayload.h>
-#include <yangrtp/YangRtpFUAPayload2.h>
+#include <yangrtp/YangRtpFUAPayload.h>
 
 #include <yangutil/sys/YangLog.h>
 #include <yangutil/sys/YangEndian.h>
@@ -40,7 +40,7 @@ static void yang_copy(YangPullTrackH264 *track, YangRtpPacket *src,
 	if (pkt->nalu_type == kFuA) {
 
 		yang_init_buffer(&track->buf, src->payload, src->nb);
-		yang_decode_h264_fua2(&track->buf, &pkt->fua2);
+		yang_decode_h264_fua(&track->buf, &pkt->fua2);
 		pkt->payload = track->buf.head;
 		pkt->nb = yang_buffer_left(&track->buf);
 	}

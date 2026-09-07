@@ -6,7 +6,7 @@
 #include <yangrtc/YangRtcRtcp.h>
 #include <yangrtp/YangRtpHeader.h>
 #include <yangrtp/YangRtpConstant.h>
-#include <yangrtp/YangRtpFUAPayload2.h>
+#include <yangrtp/YangRtpFUAPayload.h>
 
 #include <yangrtc/YangPullTrack.h>
 #include <yangrtp/YangRtpRawPayload.h>
@@ -166,7 +166,7 @@ static void yang_copy(YangPullTrackH265 *track, YangRtpPacket *src,
 
 	if (pkt->nalu_type == H265_kFuA) {
 		yang_init_buffer(&track->buf, src->payload, src->nb);
-		yang_decode_h265_fua2(&track->buf, &pkt->fua2);
+		yang_decode_h265_fua(&track->buf, &pkt->fua2);
 		pkt->payload = track->buf.head;
 		pkt->nb = yang_buffer_left(&track->buf);
 	}
