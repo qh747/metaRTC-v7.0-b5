@@ -17,7 +17,6 @@
 #include <yangutil/buffer2/YangSortBuffer.h>
 
 typedef struct {
-
 	yangbool enableAudioBuffer;
 	yangbool isAudio;
 
@@ -29,85 +28,103 @@ typedef struct {
 	int64_t last_sender_report_rtp_time;
 	uint64_t last_sender_report_sys_time;
 
-	YangReceiveNackBuffer *rtp_queue;
-	YangRtpRecvNack *nack_receiver;
+	YangReceiveNackBuffer* rtp_queue;
+	YangRtpRecvNack* nack_receiver;
 
 	YangFrame audioFrame;
 	YangNtp last_sender_report_ntp;
 	YangSortBuffer* sortBuffer;
+
 } YangPullTrack;
 
 #if Yang_Enable_RTC_Audio
-typedef struct{
+typedef struct {
 	YangPullTrack session;
-	int32_t (*on_rtp)(YangRtcContext *context,YangPullTrack* session, YangRtpPacket *ppkt);
-	int32_t (*on_nack)(YangRtcContext *context, YangPullTrack *track,YangRtpPacket *pkt);
-	int32_t (*check_nacks)(YangRtcContext *context,YangPullTrack *audiotrack);
 
-	int32_t (*has_ssrc)(YangRtcContext *context, YangPullTrack *track,uint32_t ssrc);
-	void (*update_rtt)(YangPullTrack *track, int32_t rtt);
-	void (*update_send_report_time)(YangPullTrack *track, YangNtp *ntp,	uint32_t rtp_time);
-	int32_t (*send_rtcp_rr)(YangRtcContext *context,YangPullTrack *track);
-	int32_t (*send_rtcp_xr_rrtr)(YangRtcContext *context,YangPullTrack *track) ;
-}YangPullTrackAudio;
+	int32_t (*on_rtp)(YangRtcContext* context, YangPullTrack* session, YangRtpPacket* pkt);
+
+	int32_t (*on_nack)(YangRtcContext* context, YangPullTrack* track, YangRtpPacket* pkt);
+	int32_t (*check_nacks)(YangRtcContext* context, YangPullTrack* audioTrack);
+
+	int32_t (*has_ssrc)(YangRtcContext* context, YangPullTrack* track, uint32_t ssrc);
+
+	void (*update_rtt)(YangPullTrack* track, int32_t rtt);
+	void (*update_send_report_time)(YangPullTrack* track, YangNtp* ntp, uint32_t rtp_time);
+
+	int32_t (*send_rtcp_rr)(YangRtcContext* context, YangPullTrack* track);
+	int32_t (*send_rtcp_xr_rrtr)(YangRtcContext* context, YangPullTrack* track);
+
+} YangPullTrackAudio;
 #endif
 
 #if Yang_Enable_RTC_Video
-typedef struct  {
+typedef struct {
 	YangPullTrack track;
-	void *h264Track;
-	void *h265Track;
+	void* h264Track;
+	void* h265Track;
+
 } YangPullTrackSession;
 
-typedef struct{
+typedef struct {
 	YangPullTrackSession session;
-	int32_t (*on_rtp)(YangRtcContext* context,YangPullTrackSession* track,YangRtpPacket *pkt);
-	int32_t (*on_nack)(YangRtcContext *context, YangPullTrack *track,YangRtpPacket *pkt);
-	int32_t (*check_nacks)(YangRtcContext *context,YangPullTrackSession *videotrack);
+
+	int32_t (*on_rtp)(YangRtcContext* context,YangPullTrackSession* track,YangRtpPacket* pkt);
+
+	int32_t (*on_nack)(YangRtcContext* context, YangPullTrack* track, YangRtpPacket* pkt);
+	int32_t (*check_nacks)(YangRtcContext* context, YangPullTrackSession* videoTrack);
+
 	void (*setRequestKeyframeState)(YangPullTrackSession* track,int32_t state);
-	int32_t (*has_ssrc)(YangRtcContext *context, YangPullTrack *track,uint32_t ssrc);
+
+	int32_t (*has_ssrc)(YangRtcContext* context, YangPullTrack* track, uint32_t ssrc);
+
 	void (*update_rtt)(YangPullTrack *track, int32_t rtt);
-	void (*update_send_report_time)(YangPullTrack *track, YangNtp *ntp,	uint32_t rtp_time);
-	int32_t (*send_rtcp_rr)(YangRtcContext *context,YangPullTrack *track);
-	int32_t (*send_rtcp_xr_rrtr)(YangRtcContext *context,YangPullTrack *track) ;
-}YangPullTrackVideo;
+	void (*update_send_report_time)(YangPullTrack* track, YangNtp* ntp, uint32_t rtp_time);
+
+	int32_t (*send_rtcp_rr)(YangRtcContext* context, YangPullTrack* track);
+	int32_t (*send_rtcp_xr_rrtr)(YangRtcContext* context, YangPullTrack* track);
+
+} YangPullTrackVideo;
 #endif
-typedef struct  {
+
+typedef struct {
 	uint32_t audioSsrc;
 	uint32_t videoSsrc;
+
 	int32_t mw_msgs;
+
 #if Yang_Enable_RTC_Audio
-	YangPublishNackBuffer *audio_queue;
+	YangPublishNackBuffer* audio_queue;
 #endif
+
 #if Yang_Enable_RTC_Video
-	YangPublishNackBuffer *video_queue;
+	YangPublishNackBuffer* video_queue;
 #endif
 
 } YangRtcPushStream;
 
-
-typedef struct  {
+typedef struct {
 	uint8_t request_keyframe;
+
 	uint8_t twccFbCount;
 	uint16_t twccEnabled;
+
 	int32_t twccId;
 
 	int64_t last_time_send_twcc;
 	YangRecvTWCC* twcc;
 
-	YangRtpBuffer *rtpBuffer;
+	YangRtpBuffer* rtpBuffer;
 	YangRtpPacket rtp;
 	YangBuffer buf;
+
 #if Yang_Enable_RTC_Audio
-	YangPullTrackAudio *audioTrack;
+	YangPullTrackAudio* audioTrack;
 #endif
+
 #if Yang_Enable_RTC_Video
-	YangPullTrackVideo *videoTrack;
+	YangPullTrackVideo* videoTrack;
 #endif
 
 } YangRtcPullStream;
 
-
-
-
-#endif /* SRC_YANGRTC_YANGRTCSTREAM_H_ */
+#endif // SRC_YANGRTC_YANGRTCSTREAM_H_

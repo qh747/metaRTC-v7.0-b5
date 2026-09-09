@@ -22,8 +22,6 @@
 #include <yangrtc/YangPullTrackVideo.h>
 #include <yangrtc/YangPullTrackVideo.h>
 
-#include <math.h>
-
 int32_t yang_rtcplay_on_twcc(YangRtcContext *context, YangRtcPullStream *play,uint16_t sn) {
 	int32_t err = Yang_Ok;
 

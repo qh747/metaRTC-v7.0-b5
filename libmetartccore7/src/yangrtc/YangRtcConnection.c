@@ -154,12 +154,6 @@ static void yang_exec_timer_task(int32_t taskId, void* user) {
 			yang_error("check bandwidth Error ");
 		}
 
-		result = session->push->check_twcc(&session->context, session->push->pubStream);
-
-		if (result != Yang_Ok) {
-			yang_error("check twcc Error ");
-		}
-
 		if (session->play && session->context.stats.recvStats.video.rtt > 0) {
 			session->play->update_rtt(
 				&session->context,

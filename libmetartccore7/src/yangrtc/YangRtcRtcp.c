@@ -26,15 +26,6 @@ int32_t yang_send_rtcppacket(YangRtcContext *context, char *data, int32_t nb) {
 	return context->sock->write(&context->sock->session, data, nn_encrypt);
 }
 
-
-void yang_do_request_keyframe(YangRtcContext *context, uint32_t ssrc) {
-
-	if (context && context->peerCallback && context->peerCallback->rtcCallback.sendRequest)
-		context->peerCallback->rtcCallback.sendRequest(context->peerCallback->rtcCallback.context,context->peerInfo->uid, ssrc,
-				Yang_Req_Sendkeyframe);
-
-}
-
 int32_t yang_send_rtcp_fb_pli(YangRtcContext *context, uint32_t ssrc) {
 
 	char buf[kRtpPacketSize];
@@ -59,29 +50,43 @@ int32_t yang_send_rtcp_fb_twcc(YangRtcContext *context, YangRecvTWCC* twcc,int32
 	}
 
 	return yang_send_rtcppacket(context,stream.data,yang_buffer_pos(&stream));
-
 }
 
-int32_t yang_send_rtcp_sr(YangRtcContext *context, yangbool isAudio,uint32_t ssrc) {
-	uint32_t ts;
-	uint64_t stamp,ntp;
-	YangSendStats* stats=&context->stats.sendStats;
-	char buf[kRtpPacketSize];
+int32_t yang_send_rtcp_sr(YangRtcContext* context, yangbool isAudio, uint32_t ssrc) {
+	YangSendStats* stats = &context->stats.sendStats;
+    
+	// 如果还未发送过rtp数据则不发送rtcp sr消息
+	if (isAudio && stats->audioStartTime == 0) {
+		return Yang_Ok;
+	}
+	else if (!isAudio && stats->videoStartTime == 0) {
+		return Yang_Ok;
+	}
+    
+	// 媒体时钟频率：音频用协商的采样率，视频固定 90000
+    uint32_t clockRate = isAudio ? context->peerInfo->pushAudio.sample : 90000;
+
+	// 1) NTP 时间戳：发送此刻的绝对墙上时间（公式与 on_recvRR 中保持一致）
+    uint64_t timeMs = yang_get_milli_time();
+    uint64_t ntp = (
+		// 高32位：整秒（1970纪元 + 偏移 = 1900纪元）
+		(timeMs / 1000 + 2208988800ULL) << 32) | 
+		// 低32位：秒的小数部分（单位 1/2^32 秒）
+	    (uint64_t)((timeMs % 1000) / 1000.0 * 4294967296.0
+	);
+
+	// 2) RTP 时间戳：以最后一个实际发出的媒体包为锚点外推
+    uint64_t nowUs = yang_get_system_time();
+    uint64_t lastSendUs = isAudio ? stats->lastAudioSendTime : stats->lastVideoSendTime;
+    uint32_t lastRtpTs  = isAudio ? stats->lastAudioRtpTs    : stats->lastVideoRtpTs;
+
+    uint32_t ts = lastRtpTs + (uint32_t)((nowUs - lastSendUs) * clockRate / YANG_UTIME_SECONDS);
+    
 	YangBuffer stream;
-
-	if(isAudio&&stats->audioStartTime==0)
-		return Yang_Ok;
-
-	if(!isAudio&&stats->videoStartTime==0)
-		return Yang_Ok;
-
-	stamp=yang_get_system_time() - (isAudio?stats->audioStartTime:stats->videoStartTime);
-
-	ntp=yang_get_ntptime_fromms(stamp/1000);
-	ts=stamp*(isAudio?context->peerInfo->pushAudio.sample:90000)/YANG_UTIME_SECONDS;
-
+	char buf[kRtpPacketSize];
 
 	yang_init_buffer(&stream, buf, sizeof(buf));
+
 	yang_write_1bytes(&stream, 0x80);
 	yang_write_1bytes(&stream, kSR);
 	yang_write_2bytes(&stream, 6);
@@ -89,13 +94,11 @@ int32_t yang_send_rtcp_sr(YangRtcContext *context, yangbool isAudio,uint32_t ssr
 
 	yang_write_8bytes(&stream, ntp);
 	yang_write_4bytes(&stream, ts);
-	yang_write_4bytes(&stream, isAudio?stats->audioRtpPacketCount:stats->videoRtpPacketCount);
-	yang_write_4bytes(&stream, isAudio?stats->audioRtpBytes:stats->videoRtpBytes);
+	yang_write_4bytes(&stream, isAudio ? stats->audioRtpPacketCount : stats->videoRtpPacketCount);
+	yang_write_4bytes(&stream, isAudio ? stats->audioRtpBytes : stats->videoRtpBytes);
 
-	return yang_send_rtcppacket(context,stream.data,yang_buffer_pos(&stream));
+	return yang_send_rtcppacket(context, stream.data, yang_buffer_pos(&stream));
 }
-
-
 
 int32_t yang_send_rtcp_rr(YangRtcContext *context,yangbool isAudio, uint32_t ssrc,
 		YangReceiveNackBuffer *rtp_queue, const uint64_t last_send_systime,

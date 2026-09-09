@@ -11,35 +11,41 @@
 
 #define Yang_LostRate_defaultCount 5
 
-typedef enum{
+typedef enum {
 	YangLowLostRate,
 	YangHighLostRate
-}YangLostRateState;
 
-typedef struct{
+} YangLostRateState;
+
+typedef struct {
 	int32_t hightLostCount;
 	int32_t lowLostCount;
+
 	int32_t lastCheckSn;
 	int32_t preCheckSn;
-	int32_t lossPacketCount;
-	//YangRequestType request;
-	//uint64_t lastPacketCount;
 
+	int32_t lossPacketCount;
 	double lostRate;
 
 	YangLostRateState lostRateState;
 	YangLostRateState preLostRateState;
 
-}YangBandwidthSession;
+} YangBandwidthSession;
 
-typedef struct{
+typedef struct {
 	YangBandwidthSession session;
-	int32_t (*estimate)(YangBandwidthSession* bw,YangTwccSession* twcc);
-	int32_t (*checkByTwcc)(YangBandwidthSession* bw,YangTwccSession* twcc);
-	int32_t (*checkBandWidth)(YangBandwidthSession* bw,YangRtcStats* stats,YangPeerInfo* peerInfo,YangPeerCallback* peerCallback,uint32_t ssrc);
-}YangBandwidth;
+
+	int32_t (*checkBandWidth)(
+		YangBandwidthSession* bw,
+		YangRtcStats* stats,
+		YangPeerInfo* peerInfo,
+		YangPeerCallback* peerCallback,
+		uint32_t ssrc
+	);
+
+} YangBandwidth;
 
 void yang_create_bandwidth(YangBandwidth* bw);
 void yang_destroy_bandwidth(YangBandwidth* bw);
 
-#endif /* SRC_YANGRTC_YANGBANDWIDTH_H_ */
+#endif // SRC_YANGRTC_YANGBANDWIDTH_H_

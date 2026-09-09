@@ -19,7 +19,6 @@ typedef struct {
 	uint64_t rtpPacketCount;
 	uint64_t lastRtpPcackCount;
 
-
     uint64_t rtt;
     uint64_t totalRtt;
     double fractionLost;
@@ -28,21 +27,25 @@ typedef struct {
     uint64_t lostVideoPacketCount;
     uint64_t preLostVideoPacketCount;
 
-}YangRemoteRecvStats;
+} YangRemoteRecvStats;
 
-typedef struct{
+typedef struct {
 	YangRemoteRecvStats audio;
 	YangRemoteRecvStats video;
-}YangRecvStats;
 
-typedef struct{
+} YangRecvStats;
+
+typedef struct {
 	uint32_t frameCount;
 	uint32_t pliCount;
+
 	uint32_t nackCount;
 	uint32_t reSenndNackPacketCount;
+
 	uint64_t videoRtpPacketCount;
-	uint64_t videoRtpBytes;
 	uint64_t audioRtpPacketCount;
+
+	uint64_t videoRtpBytes;
 	uint64_t audioRtpBytes;
 
 	uint64_t preVideoRtpPacketCount;
@@ -51,23 +54,37 @@ typedef struct{
 	uint64_t lastVideoSendTime;
 	uint64_t lastAudioSendTime;
 
+	uint32_t lastVideoRtpTs;
+    uint32_t lastAudioRtpTs;
+
 	uint64_t audioStartTime;
 	uint64_t videoStartTime;
-}YangSendStats;
 
-typedef struct{
+} YangSendStats;
+
+typedef struct {
 	YangSendStats sendStats;
 	YangRecvStats recvStats;
-	void (*on_pub_videoRtp)(YangSendStats* stats,YangRtpPacket* pkt,YangBuffer* buf);
-	void (*on_pub_audioRtp)(YangSendStats* stats,YangRtpPacket* pkt,YangBuffer* buf);
-	void (*on_play_videoRtp)(YangRecvStats* stats,YangRtpPacket* pkt);
-	void (*on_play_audioRtp)(YangRecvStats* stats,YangRtpPacket* pkt);
-	int32_t (*on_recvRR)(yangbool isAudio,YangRecvStats* recvStats,YangSendStats* sendStats,YangRtcpCommon *rtcp);
+
+	void (*on_pub_videoRtp)(YangSendStats* stats, YangRtpPacket* pkt, YangBuffer* buf);
+	void (*on_pub_audioRtp)(YangSendStats* stats, YangRtpPacket* pkt, YangBuffer* buf);
+
+	void (*on_play_videoRtp)(YangRecvStats* stats, YangRtpPacket* pkt);
+	void (*on_play_audioRtp)(YangRecvStats* stats, YangRtpPacket* pkt);
+
 	uint8_t (*getFractionLost)(YangRemoteRecvStats* stats);
 	uint64_t (*getLostCount)(YangRemoteRecvStats* stats);
-}YangRtcStats;
+
+	int32_t (*on_recvRR)(
+		yangbool isAudio,
+		YangRecvStats* recvStats,
+		YangSendStats* sendStats,
+		YangRtcpCommon *rtcp
+	);
+
+} YangRtcStats;
 
 void yang_create_rtcstats(YangRtcStats* stats);
 void yang_destroy_rtcstats(YangRtcStats* stats);
 
-#endif /* SRC_YANGRTC_YANGRTCSTATS_H_ */
+#endif // SRC_YANGRTC_YANGRTCSTATS_H_

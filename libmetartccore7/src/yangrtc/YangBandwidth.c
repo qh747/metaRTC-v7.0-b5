@@ -5,77 +5,91 @@
 #include <yangrtc/YangBandwidth.h>
 #include <yangrtc/YangRtcStats.h>
 
-
-
-void yang_bandwidth_updateEstimate(int64_t now_ms) {
-
-}
-//by lost rtp packet rate
-static int32_t yang_bandwidth_check(YangBandwidthSession* bw,YangRtcStats* stats,YangPeerInfo* peerInfo,YangPeerCallback* peerCallback,uint32_t ssrc){
-
-	int32_t err=Yang_Ok;
-	bw->lostRate=0;
-
-	if(stats->recvStats.video.fractionLost<kDefaultHighLossThreshold && bw->preLostRateState==YangLowLostRate)
+static int32_t yang_bandwidth_check(
+	YangBandwidthSession* bw,
+	YangRtcStats* stats,
+	YangPeerInfo* peerInfo,
+	YangPeerCallback* peerCallback,
+	uint32_t ssrc) {
+    
+	// 重置丢包率
+	bw->lostRate = 0;
+   
+	// 如果当前的丢包率小于高丢包率阈值，并且上一轮的丢包率状态为低丢包率，则直接返回
+	if (stats->recvStats.video.fractionLost < kDefaultHighLossThreshold && 
+		bw->preLostRateState == YangLowLostRate) {
 		return Yang_Ok;
+	}
 
-	if(stats->recvStats.video.fractionLost>kDefaultHighLossThreshold){
+	// 如果当前的丢包率大于高丢包率阈值，则增加高丢包率计数
+	if (stats->recvStats.video.fractionLost > kDefaultHighLossThreshold) {
+		// 增加高丢包率计数
 		bw->hightLostCount++;
-		bw->lowLostCount=0;
-		if(bw->hightLostCount>=Yang_LostRate_defaultCount){
-			bw->lostRate=stats->recvStats.video.fractionLost;
-			bw->lostRateState=YangHighLostRate;
+		// 重置低丢包率计数
+		bw->lowLostCount = 0;
+
+		// 如果高丢包率计数大于等于默认丢包率计数，则设置丢包率为当前丢包率，并设置丢包率为高丢包率
+		if (bw->hightLostCount >= Yang_LostRate_defaultCount) {
+			// 设置丢包率为当前丢包率
+			bw->lostRate = stats->recvStats.video.fractionLost;
+			// 设置丢包率为高丢包率状态
+			bw->lostRateState = YangHighLostRate;
 		}
-	}else{
+	}
+	else {
+		// 增加低丢包率计数
 		bw->lowLostCount++;
-		bw->hightLostCount=0;
-		if(bw->hightLostCount>=Yang_LostRate_defaultCount) {
-			bw->lostRate=stats->recvStats.video.fractionLost;
-			bw->lostRateState=YangLowLostRate;
+		// 重置高丢包率计数
+		bw->hightLostCount = 0;
+
+		// 如果高丢包率计数大于等于默认丢包率计数，则设置丢包率为当前丢包率，并设置丢包率为低丢包率
+		if(bw->hightLostCount >= Yang_LostRate_defaultCount) {
+			// 设置丢包率为当前丢包率
+			bw->lostRate = stats->recvStats.video.fractionLost;
+			// 设置丢包率为低丢包率状态
+			bw->lostRateState = YangLowLostRate;
 		}
 	}
-
-
-	if(bw->preLostRateState==bw->lostRateState) return Yang_Ok;
-
-	//hight lost rate
-	if(bw->lostRateState==YangHighLostRate){
-
-		if(peerCallback->rtcCallback.sendRequest){
-			peerCallback->rtcCallback.sendRequest(peerCallback->rtcCallback.context,peerInfo->uid,ssrc,Yang_Req_HighLostPacketRate);
-		}
-
-
-	}else if(bw->lostRateState==YangLowLostRate){			//low lost rate
-		if(peerCallback->rtcCallback.sendRequest)
-			peerCallback->rtcCallback.sendRequest(peerCallback->rtcCallback.context,peerInfo->uid,ssrc,Yang_Req_LowLostPacketRate);
-
+    
+	// 如果上一轮的丢包率状态与当前的丢包率状态相同，则直接返回
+	if (bw->preLostRateState == bw->lostRateState) {
+		return Yang_Ok;
 	}
 
-	bw->preLostRateState=bw->lostRateState;
+	// 更新上一轮的丢包率状态
+	bw->preLostRateState = bw->lostRateState;
 
-	return err;
-}
-
-static int32_t yang_bandwidth_checkByTwcc(YangBandwidthSession* bw,YangTwccSession* twcc){
-
-	int32_t err=Yang_Ok;
-
-	return err;
-}
-
-static int32_t yang_bandwidth_estimate(YangBandwidthSession* bw,YangTwccSession* twcc){
-
-
+	if (bw->lostRateState == YangHighLostRate) {
+		// 如果丢包率为高丢包率状态，则发送高丢包率请求
+		if(peerCallback->rtcCallback.sendRequest) {
+			peerCallback->rtcCallback.sendRequest(
+				peerCallback->rtcCallback.context,
+				peerInfo->uid,
+				ssrc,
+				Yang_Req_HighLostPacketRate
+			);
+		}
+	}
+	else if (bw->lostRateState == YangLowLostRate) {
+		// 如果丢包率为低丢包率状态，则发送低丢包率请求
+		if(peerCallback->rtcCallback.sendRequest) {
+			peerCallback->rtcCallback.sendRequest(
+				peerCallback->rtcCallback.context,
+				peerInfo->uid,
+				ssrc,
+				Yang_Req_LowLostPacketRate
+			);
+        }
+	}
+    
 	return Yang_Ok;
 }
 
-void yang_create_bandwidth(YangBandwidth* bw){
-	bw->estimate=yang_bandwidth_estimate;
-	bw->checkByTwcc=yang_bandwidth_checkByTwcc;
+void yang_create_bandwidth(YangBandwidth* bw) {
 	bw->checkBandWidth=yang_bandwidth_check;
 }
-void yang_destroy_bandwidth(YangBandwidth* bw){
+
+void yang_destroy_bandwidth(YangBandwidth* bw) {
 
 }
 
